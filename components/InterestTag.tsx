@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing } from '../constants/theme';
+import { colors, font, radius, spacing } from '../constants/theme';
 
 interface Props {
   label: string;
@@ -19,16 +19,16 @@ export default function InterestTag({ label, highlighted = false, small = false 
 
 const styles = StyleSheet.create({
   tag: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.glass,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm + 2,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: colors.border,
   },
   tagHighlighted: {
-    backgroundColor: '#FFF0EE',
-    borderColor: colors.coral,
+    backgroundColor: colors.roseSoft,
+    borderColor: colors.rose + '50',
   },
   tagSmall: {
     paddingHorizontal: spacing.xs + 2,
@@ -36,11 +36,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: colors.dark,
+    color: colors.text,
     fontWeight: '500',
+    fontFamily: font ?? undefined,
   },
   labelHighlighted: {
-    color: colors.coral,
+    color: colors.rose,
   },
   labelSmall: {
     fontSize: 11,

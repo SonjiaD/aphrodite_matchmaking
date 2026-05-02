@@ -2,37 +2,40 @@ import { Platform } from 'react-native';
 
 export const colors = {
   // Backgrounds
-  bg:           '#FEFAF8',
-  surface:      '#FFFFFF',
+  bg:          '#0D0D1A',
+  surface:     '#161628',
+  surfaceEl:   '#1E1E38',
+  glass:       'rgba(255,255,255,0.07)',
+  glassHi:     'rgba(255,255,255,0.13)',
 
-  // Violet — primary brand
-  violet:       '#7C3AED',
-  violetDark:   '#5B21B6',
-  violetMid:    '#A855F7',
-  violetLight:  '#F3E8FF',
-  violetSoft:   '#FAF5FF',
+  // Violet — AI features only
+  violet:      '#8B5CF6',
+  violetBright:'#A78BFA',
+  violetGlow:  'rgba(139,92,246,0.22)',
+  violetSoft:  'rgba(139,92,246,0.10)',
+  violetLight: 'rgba(139,92,246,0.18)',
+  violetDark:  '#6D28D9',
+  violetMid:   '#A78BFA',
 
-  // Rose — CTA, actions
-  rose:         '#F43F5E',
-  roseDark:     '#E11D48',
-  roseSoft:     '#FFF1F2',
-
-  // Gold — points, rewards
-  gold:         '#F59E0B',
-  goldSoft:     '#FFFBEB',
+  // Rose — primary CTA (Hinge-inspired)
+  rose:        '#FF2D55',
+  roseBright:  '#FF4D6A',
+  roseGlow:    'rgba(255,45,85,0.25)',
+  roseSoft:    'rgba(255,45,85,0.12)',
 
   // Text
-  dark:         '#0F0A1A',
-  text:         '#1C1917',
-  muted:        '#78716C',
-  mutedLight:   '#D6D3D1',
+  dark:        '#FFFFFF',
+  text:        'rgba(255,255,255,0.88)',
+  muted:       'rgba(255,255,255,0.52)',
+  mutedLight:  'rgba(255,255,255,0.24)',
 
   // Borders
-  border:       '#EDE9FE',
-  borderMid:    '#DDD6FE',
+  border:      'rgba(255,255,255,0.10)',
+  borderMid:   'rgba(255,255,255,0.18)',
+  borderHi:    'rgba(255,255,255,0.30)',
 
   // States
-  success:      '#10B981',
+  success:     '#34D399',
 };
 
 export const spacing = {
@@ -55,36 +58,43 @@ export const radius = {
 
 export const shadow = {
   card: {
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  button: {
-    shadowColor: '#F43F5E',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
     elevation: 6,
   },
+  button: {
+    shadowColor: '#FF2D55',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    elevation: 8,
+  },
   modal: {
-    shadowColor: '#0F0A1A',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 14,
+  },
+  strong: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
     shadowRadius: 24,
     elevation: 12,
   },
-  strong: {
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
+  violet: {
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 6,
   },
 };
 
 export const font = Platform.select({
-  web:     'Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  web:     'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   default: undefined,
 });

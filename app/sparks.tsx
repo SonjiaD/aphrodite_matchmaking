@@ -5,10 +5,12 @@ import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { incomingSparks } from '../data/sparks';
 import { IncomingSpark } from '../types';
 
-const VIBE_CONFIG = {
-  casual:   { label: 'Casual vibe',        icon: '😊' as const },
-  strong:   { label: 'Strong connection',  icon: '💛' as const },
-  soulmates:{ label: 'Soulmates',          icon: '🔥' as const },
+type VibeIconName = React.ComponentProps<typeof Ionicons>['name'];
+
+const VIBE_CONFIG: Record<string, { label: string; icon: VibeIconName }> = {
+  casual:    { label: 'Casual vibe',       icon: 'happy-outline'  },
+  strong:    { label: 'Strong connection', icon: 'heart-outline'  },
+  soulmates: { label: 'Soulmates',         icon: 'flame-outline'  },
 };
 
 export default function SparksScreen() {
@@ -22,7 +24,7 @@ export default function SparksScreen() {
       <View style={styles.card}>
         {isAccepted && (
           <View style={styles.matchedBanner}>
-            <Ionicons name="heart" size={14} color={colors.surface} />
+            <Ionicons name="heart" size={14} color="#fff" />
             <Text style={styles.matchedText}>It's a match — say hello</Text>
           </View>
         )}
@@ -30,20 +32,29 @@ export default function SparksScreen() {
         <View style={styles.cardBody}>
           <Image source={{ uri: item.suggestedUser.photos[0] }} style={styles.photo} />
           <View style={styles.info}>
-            <Text style={styles.name}>
-              {item.suggestedUser.name}, {item.suggestedUser.age}
-            </Text>
-            <Text style={styles.cupidLine}>
-              <Ionicons name="heart-circle" size={11} color={colors.muted} /> Sparked by {item.cupidName}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>
+                {item.suggestedUser.name}, {item.suggestedUser.age}
+              </Text>
+              {item.aiVerified && (
+                <View style={styles.aiBadge}>
+                  <Text style={styles.aiStar}>✦</Text>
+                  <Text style={styles.aiLabel}>AI</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.cupidLine}>
+              <Ionicons name="heart-circle" size={11} color={colors.muted} />
+              <Text style={styles.cupidText}>Sparked by {item.cupidName}</Text>
+            </View>
             <View style={styles.vibePill}>
-              <Text style={styles.vibeText}>{vibe.icon} {vibe.label}</Text>
+              <Ionicons name={vibe.icon} size={11} color={colors.violetBright} />
+              <Text style={styles.vibeText}>{vibe.label}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.noteBox}>
-          <Text style={styles.noteLabel}>Why they think you'd click</Text>
           <Text style={styles.noteText}>"{item.note}"</Text>
         </View>
 
@@ -57,7 +68,7 @@ export default function SparksScreen() {
               activeOpacity={0.8}
               onPress={() => setAccepted((s) => new Set([...s, item.id]))}
             >
-              <Ionicons name="checkmark" size={16} color={colors.surface} />
+              <Ionicons name="checkmark" size={16} color="#fff" />
               <Text style={styles.acceptBtnText}>Accept</Text>
             </TouchableOpacity>
           </View>
@@ -84,22 +95,23 @@ export default function SparksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.cream },
+  container: { flex: 1, backgroundColor: colors.bg },
   header: {
-    backgroundColor: colors.plum,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 20,
     paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.surface,
+    color: colors.dark,
     fontFamily: font ?? undefined,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   headerSub: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.muted,
     fontFamily: font ?? undefined,
     marginTop: 2,
   },
@@ -120,13 +132,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.coral,
+    backgroundColor: colors.rose,
     paddingVertical: 10,
   },
   matchedText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.surface,
+    color: '#fff',
     fontFamily: font ?? undefined,
   },
   cardBody: {
@@ -136,63 +148,85 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   photo: {
-    width: 72,
-    height: 90,
+    width: 68,
+    height: 84,
     borderRadius: radius.sm,
   },
   info: {
     flex: 1,
-    gap: 5,
+    gap: 6,
     paddingTop: 2,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
   name: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.dark,
     fontFamily: font ?? undefined,
   },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.violetSoft,
+    borderRadius: radius.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: colors.violet + '30',
+  },
+  aiStar: { fontSize: 8, color: colors.violetBright },
+  aiLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.violetBright,
+    fontFamily: font ?? undefined,
+    letterSpacing: 0.5,
+  },
   cupidLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cupidText: {
     fontSize: 12,
     color: colors.muted,
     fontFamily: font ?? undefined,
   },
   vibePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     alignSelf: 'flex-start',
-    backgroundColor: colors.cream,
+    backgroundColor: colors.glass,
     borderRadius: radius.full,
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     paddingVertical: 3,
     borderWidth: 1,
     borderColor: colors.border,
-    marginTop: 2,
   },
   vibeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.plumMid,
+    color: colors.violetBright,
     fontFamily: font ?? undefined,
   },
   noteBox: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.glass,
     borderRadius: radius.md,
     padding: spacing.md,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.plumLight,
-    gap: 4,
-  },
-  noteLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.plumMid,
-    textTransform: 'uppercase',
-    letterSpacing: 0.7,
-    fontFamily: font ?? undefined,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   noteText: {
     fontSize: 13,
-    color: colors.dark,
+    color: colors.text,
     lineHeight: 20,
     fontFamily: font ?? undefined,
     fontStyle: 'italic',
@@ -210,6 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingVertical: 11,
     alignItems: 'center',
+    backgroundColor: colors.glass,
   },
   passBtnText: {
     fontSize: 13,
@@ -223,15 +258,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
-    backgroundColor: colors.coral,
+    backgroundColor: colors.rose,
     borderRadius: radius.full,
     paddingVertical: 11,
-    ...shadow.card,
+    ...shadow.button,
   },
   acceptBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.surface,
+    color: '#fff',
     fontFamily: font ?? undefined,
   },
 });

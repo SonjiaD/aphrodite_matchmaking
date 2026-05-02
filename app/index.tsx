@@ -2,14 +2,14 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRef, useState } from 'react';
 import { Animated, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProfileCard from '../components/ProfileCard';
-import { colors, font, shadow, spacing } from '../constants/theme';
+import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { profiles } from '../data/profiles';
 
 export default function DiscoverScreen() {
   const [cardIndex, setCardIndex] = useState(0);
   const [heartVisible, setHeartVisible] = useState(false);
   const heartAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim  = useRef(new Animated.Value(1)).current;
 
   const profile = profiles[cardIndex % profiles.length];
 
@@ -37,7 +37,7 @@ export default function DiscoverScreen() {
       <View style={styles.header}>
         <Text style={styles.logo}>Aphrodite</Text>
         <TouchableOpacity style={styles.filterBtn}>
-          <Ionicons name="options-outline" size={20} color={colors.surface} />
+          <Ionicons name="options-outline" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -48,7 +48,7 @@ export default function DiscoverScreen() {
           <Animated.View
             style={[styles.heartFloat, { transform: [{ scale: heartAnim }], opacity: heartAnim }]}
           >
-            <Text style={styles.heartEmoji}>❤️</Text>
+            <Ionicons name="heart" size={88} color={colors.rose} />
           </Animated.View>
         )}
       </Animated.View>
@@ -61,8 +61,8 @@ export default function DiscoverScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.actionBtn, styles.roseBtn]} activeOpacity={0.8}>
-          <Ionicons name="rose" size={22} color={colors.plumLight} />
-          <Text style={[styles.actionLabel, { color: colors.plumLight }]}>Rose</Text>
+          <Ionicons name="rose" size={22} color={colors.violetBright} />
+          <Text style={[styles.actionLabel, { color: colors.violetBright }]}>Rose</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -70,8 +70,8 @@ export default function DiscoverScreen() {
           onPress={() => { showHeart(); setTimeout(advance, 900); }}
           activeOpacity={0.8}
         >
-          <Ionicons name="heart" size={26} color={colors.surface} />
-          <Text style={[styles.actionLabel, { color: colors.surface }]}>Like</Text>
+          <Ionicons name="heart" size={26} color="#fff" />
+          <Text style={[styles.actionLabel, { color: '#fff' }]}>Like</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -81,20 +81,21 @@ export default function DiscoverScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.bg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.plum,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 20,
     paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   logo: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.surface,
+    color: colors.dark,
     fontFamily: font ?? undefined,
     letterSpacing: -0.5,
   },
@@ -102,22 +103,23 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.glass,
+    borderWidth: 1,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardContainer: {
     flex: 1,
-    margin: spacing.md,
+    margin: 10,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
     ...shadow.card,
   },
   heartFloat: {
     position: 'absolute',
     alignSelf: 'center',
     top: '30%',
-  },
-  heartEmoji: {
-    fontSize: 90,
   },
   actions: {
     flexDirection: 'row',
@@ -143,12 +145,13 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#F5F0FF',
-    borderColor: colors.plumLight + '40',
+    backgroundColor: colors.violetSoft,
+    borderColor: colors.violet + '30',
   },
   likeBtn: {
-    backgroundColor: colors.coral,
-    borderColor: colors.coral,
+    backgroundColor: colors.rose,
+    borderColor: colors.rose,
+    ...shadow.button,
   },
   actionLabel: {
     fontSize: 9,

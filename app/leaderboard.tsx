@@ -5,24 +5,26 @@ import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { leaderboardData } from '../data/leaderboard';
 import { LeaderboardEntry } from '../types';
 
-const MEDALS = [
-  { emoji: '🥇', bg: colors.goldSoft, border: colors.gold },
-  { emoji: '🥈', bg: '#F5F5F5',       border: '#C0C0C0' },
-  { emoji: '🥉', bg: '#FFF3EE',       border: '#CD7F32' },
+const RANK_COLORS = [
+  { text: '#FFD700', border: 'rgba(255,215,0,0.3)',  bg: 'rgba(255,215,0,0.08)'  },
+  { text: '#C0C0C0', border: 'rgba(192,192,192,0.3)', bg: 'rgba(192,192,192,0.08)' },
+  { text: '#CD7F32', border: 'rgba(205,127,50,0.3)',  bg: 'rgba(205,127,50,0.08)'  },
 ];
 
 function TopCard({ entry }: { entry: LeaderboardEntry }) {
-  const m = MEDALS[entry.rank - 1];
+  const rc = RANK_COLORS[entry.rank - 1];
   return (
-    <View style={[styles.topCard, { backgroundColor: m.bg, borderColor: m.border }]}>
-      <Text style={styles.medal}>{m.emoji}</Text>
+    <View style={[styles.topCard, { borderColor: rc.border, backgroundColor: rc.bg }]}>
+      <View style={[styles.rankBadge, { borderColor: rc.border }]}>
+        <Text style={[styles.rankNum, { color: rc.text }]}>#{entry.rank}</Text>
+      </View>
       <Image source={{ uri: entry.user.photos[0] }} style={styles.topAvatar} />
       <Text style={styles.topName}>{entry.user.name}</Text>
       <Text style={styles.topSparks}>{entry.stats.totalSparks} sparks</Text>
-      <Text style={styles.topRate}>{entry.stats.successRate}% success</Text>
+      <Text style={styles.topRate}>{entry.stats.successRate}%</Text>
       {entry.stats.streak > 0 && (
         <View style={styles.streakBadge}>
-          <Ionicons name="flame" size={10} color={colors.coral} />
+          <Ionicons name="flame" size={10} color={colors.rose} />
           <Text style={styles.streakText}>{entry.stats.streak}wk</Text>
         </View>
       )}
@@ -33,7 +35,7 @@ function TopCard({ entry }: { entry: LeaderboardEntry }) {
 function LeaderRow({ entry, last }: { entry: LeaderboardEntry; last?: boolean }) {
   return (
     <View style={[styles.row, last && { borderBottomWidth: 0 }]}>
-      <Text style={styles.rankNum}>#{entry.rank}</Text>
+      <Text style={styles.rowRank}>#{entry.rank}</Text>
       <Image source={{ uri: entry.user.photos[0] }} style={styles.rowAvatar} />
       <View style={styles.rowInfo}>
         <Text style={styles.rowName}>{entry.user.name}</Text>
@@ -90,23 +92,22 @@ export default function LeaderboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.cream },
+  container: { flex: 1, backgroundColor: colors.bg },
   header: {
-    backgroundColor: colors.plum,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 20,
     paddingTop: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: colors.surface,
+    color: colors.dark,
     fontFamily: font ?? undefined,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     marginBottom: spacing.md,
   },
-  tabRow: {
-    flexDirection: 'row',
-  },
+  tabRow: { flexDirection: 'row' },
   tab: {
     flex: 1,
     paddingVertical: 10,
@@ -114,14 +115,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: { borderBottomColor: colors.coral },
+  tabActive: { borderBottomColor: colors.rose },
   tabLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.4)',
+    color: colors.muted,
     fontFamily: font ?? undefined,
   },
-  tabLabelActive: { color: colors.surface },
+  tabLabelActive: { color: colors.dark },
   list: { padding: spacing.md, gap: spacing.md },
   topRow: {
     flexDirection: 'row',
@@ -134,16 +135,27 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     padding: spacing.sm,
-    gap: 3,
-    ...shadow.card,
+    gap: 4,
   },
-  medal: { fontSize: 20 },
+  rankBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  rankNum: {
+    fontSize: 11,
+    fontWeight: '800',
+    fontFamily: font ?? undefined,
+  },
   topAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: 2,
   },
   topName: {
     fontSize: 12,
@@ -153,8 +165,8 @@ const styles = StyleSheet.create({
     fontFamily: font ?? undefined,
   },
   topSparks: {
-    fontSize: 11,
-    color: colors.plumMid,
+    fontSize: 10,
+    color: colors.violet,
     fontWeight: '600',
     fontFamily: font ?? undefined,
   },
@@ -167,15 +179,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    backgroundColor: colors.coralSoft,
+    backgroundColor: colors.roseSoft,
     borderRadius: radius.full,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    marginTop: 2,
   },
   streakText: {
     fontSize: 10,
-    color: colors.coral,
+    color: colors.rose,
     fontWeight: '700',
     fontFamily: font ?? undefined,
   },
@@ -190,11 +201,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...shadow.card,
   },
-  rankNum: {
+  rowRank: {
     fontSize: 13,
     fontWeight: '700',
     color: colors.mutedLight,
-    width: 26,
+    width: 28,
     fontFamily: font ?? undefined,
   },
   rowAvatar: {
@@ -220,7 +231,7 @@ const styles = StyleSheet.create({
   rowSparks: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.plumMid,
+    color: colors.violet,
     fontFamily: font ?? undefined,
   },
   rowRate: {

@@ -1,17 +1,18 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, font, radius, spacing } from '../constants/theme';
 
 const VIBES = [
-  { key: 'casual', label: 'Casual vibe', emoji: '😊' },
-  { key: 'strong', label: 'Strong connection', emoji: '💛' },
-  { key: 'soulmates', label: 'Soulmates', emoji: '🔥' },
+  { key: 'casual',    label: 'Casual',    icon: 'happy-outline'  as const },
+  { key: 'strong',    label: 'Strong',    icon: 'heart-outline'  as const },
+  { key: 'soulmates', label: 'Soulmates', icon: 'flame-outline'  as const },
 ] as const;
 
 type Vibe = 'casual' | 'strong' | 'soulmates';
 
 interface Props {
   selected: Vibe | null;
-  onSelect: (vibe: Vibe) => void;
+  onSelect: (v: Vibe) => void;
 }
 
 export default function VibeSelector({ selected, onSelect }: Props) {
@@ -19,18 +20,22 @@ export default function VibeSelector({ selected, onSelect }: Props) {
     <View style={styles.container}>
       <Text style={styles.label}>How strong is this connection?</Text>
       <View style={styles.row}>
-        {VIBES.map((vibe) => {
-          const active = selected === vibe.key;
+        {VIBES.map((v) => {
+          const active = selected === v.key;
           return (
             <TouchableOpacity
-              key={vibe.key}
+              key={v.key}
               style={[styles.pill, active && styles.pillActive]}
-              onPress={() => onSelect(vibe.key)}
-              activeOpacity={0.7}
+              onPress={() => onSelect(v.key)}
+              activeOpacity={0.75}
             >
-              <Text style={styles.emoji}>{vibe.emoji}</Text>
+              <Ionicons
+                name={v.icon}
+                size={14}
+                color={active ? colors.rose : colors.muted}
+              />
               <Text style={[styles.pillLabel, active && styles.pillLabelActive]}>
-                {vibe.label}
+                {v.label}
               </Text>
             </TouchableOpacity>
           );
@@ -41,15 +46,13 @@ export default function VibeSelector({ selected, onSelect }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: spacing.sm,
-  },
+  container: { gap: spacing.sm },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.muted,
     textTransform: 'uppercase',
-    letterSpacing: 0.7,
+    letterSpacing: 0.8,
     fontFamily: font ?? undefined,
   },
   row: {
@@ -61,28 +64,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.glass,
   },
   pillActive: {
-    borderColor: colors.coral,
-    backgroundColor: colors.coralSoft,
-  },
-  emoji: {
-    fontSize: 13,
+    borderColor: colors.rose + '60',
+    backgroundColor: colors.roseSoft,
   },
   pillLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.muted,
     fontFamily: font ?? undefined,
   },
   pillLabelActive: {
-    color: colors.coral,
-    fontWeight: '600',
+    color: colors.rose,
   },
 });

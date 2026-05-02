@@ -1,5 +1,6 @@
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { colors, font, radius, shadow, spacing } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { colors, font, radius, spacing } from '../constants/theme';
 import { User } from '../types';
 
 interface Props {
@@ -9,237 +10,186 @@ interface Props {
 }
 
 export default function ProfileCard({ user, compact = false, sharedInterests = [] }: Props) {
-  return (
-    <ScrollView
-      style={styles.card}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      nestedScrollEnabled
-    >
-      {/* Primary photo */}
-      <Image
-        source={{ uri: user.photos[0] }}
-        style={[styles.primaryPhoto, compact && styles.primaryPhotoCompact]}
-        resizeMode="cover"
-      />
-
-      {/* Identity */}
-      <View style={styles.identity}>
-        <View style={styles.nameRow}>
-          <Text style={[styles.name, compact && styles.nameCompact]}>{user.name}</Text>
-          <Text style={[styles.age, compact && styles.ageCompact]}>{user.age}</Text>
-        </View>
-        {!compact && <Text style={styles.distance}>{user.distance}</Text>}
-      </View>
-
-      {/* First prompt */}
-      <Prompt
-        question={user.prompts[0]?.question}
-        answer={user.prompts[0]?.answer}
-        compact={compact}
-      />
-
-      {/* Second photo */}
-      {user.photos[1] && (
+  if (compact) {
+    return (
+      <View style={styles.compactCard}>
         <Image
-          source={{ uri: user.photos[1] }}
-          style={[styles.secondaryPhoto, compact && styles.secondaryPhotoCompact]}
+          source={{ uri: user.photos[0] }}
+          style={StyleSheet.absoluteFill}
           resizeMode="cover"
         />
-      )}
-
-      {/* Interests */}
-      <View style={styles.interestsRow}>
-        {user.interests.slice(0, compact ? 3 : 5).map((interest) => {
-          const highlighted = sharedInterests.includes(interest);
-          return (
-            <View key={interest} style={[styles.tag, highlighted && styles.tagHighlighted]}>
-              <Text style={[styles.tagText, highlighted && styles.tagTextHighlighted, compact && styles.tagTextSmall]}>
-                {interest}
-              </Text>
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.82)']}
+          locations={[0.42, 1]}
+          style={[StyleSheet.absoluteFillObject, styles.compactGrad]}
+        >
+          <View style={styles.compactInfo}>
+            <Text style={styles.compactName} numberOfLines={1}>
+              {user.name}{' '}
+              <Text style={styles.compactAge}>{user.age}</Text>
+            </Text>
+            <View style={styles.tagsRow}>
+              {user.interests.slice(0, 2).map((tag) => {
+                const hi = sharedInterests.includes(tag);
+                return (
+                  <View key={tag} style={[styles.tag, hi && styles.tagHi]}>
+                    <Text style={[styles.tagText, hi && styles.tagTextHi]}>{tag}</Text>
+                  </View>
+                );
+              })}
             </View>
-          );
-        })}
+          </View>
+        </LinearGradient>
       </View>
+    );
+  }
 
-      {/* Second prompt (full card only) */}
-      {!compact && user.prompts[1] && (
-        <Prompt question={user.prompts[1]?.question} answer={user.prompts[1]?.answer} />
-      )}
-
-      {/* Looking for */}
-      <View style={styles.lookingForRow}>
-        <Text style={styles.lookingForLabel}>Looking for  </Text>
-        <Text style={styles.lookingForValue}>{user.lookingFor}</Text>
-      </View>
-    </ScrollView>
-  );
-}
-
-function Prompt({ question, answer, compact }: { question?: string; answer?: string; compact?: boolean }) {
-  if (!question || !answer) return null;
   return (
-    <View style={[styles.prompt, compact && styles.promptCompact]}>
-      <Text style={[styles.promptQ, compact && styles.promptQCompact]}>{question}</Text>
-      <Text style={[styles.promptA, compact && styles.promptACompact]}>{answer}</Text>
+    <View style={styles.fullCard}>
+      <Image
+        source={{ uri: user.photos[0] }}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
+      <LinearGradient
+        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.95)']}
+        locations={[0, 0.3, 0.62, 1]}
+        style={[StyleSheet.absoluteFillObject, styles.fullGrad]}
+      >
+        <View style={styles.fullInfo}>
+          <Text style={styles.fullName}>
+            {user.name}{' '}
+            <Text style={styles.fullAge}>{user.age}</Text>
+          </Text>
+          <Text style={styles.distance}>{user.distance}</Text>
+
+          {user.prompts[0]?.answer && (
+            <Text style={styles.bio} numberOfLines={2}>
+              {user.prompts[0].answer}
+            </Text>
+          )}
+
+          <View style={styles.tagsRow}>
+            {user.interests.slice(0, 4).map((tag) => (
+              <View key={tag} style={styles.tag}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.lf}>
+            Looking for{' '}
+            <Text style={styles.lfValue}>{user.lookingFor}</Text>
+          </Text>
+        </View>
+      </LinearGradient>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  // ── Full card (Discover) ──────────────────────────────
+  fullCard: {
     flex: 1,
-    backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow.card,
+    overflow: 'hidden',
+    backgroundColor: '#000',
   },
-  content: {
-    paddingBottom: spacing.lg,
+  fullGrad: {
+    justifyContent: 'flex-end',
   },
-
-  // Photos
-  primaryPhoto: {
-    width: '100%',
-    height: 300,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+  fullInfo: {
+    padding: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: 7,
   },
-  primaryPhotoCompact: {
-    height: 190,
+  fullName: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    fontFamily: font ?? undefined,
+    letterSpacing: -0.5,
   },
-  secondaryPhoto: {
-    width: '100%',
-    height: 180,
-  },
-  secondaryPhotoCompact: {
-    height: 110,
-  },
-
-  // Identity
-  identity: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xs,
-    gap: 2,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.sm,
-  },
-  name: {
+  fullAge: {
     fontSize: 24,
-    fontWeight: '700',
-    color: colors.dark,
-    fontFamily: font ?? undefined,
-  },
-  nameCompact: {
-    fontSize: 17,
-  },
-  age: {
-    fontSize: 20,
     fontWeight: '400',
-    color: colors.dark,
-    fontFamily: font ?? undefined,
-  },
-  ageCompact: {
-    fontSize: 15,
+    color: 'rgba(255,255,255,0.80)',
   },
   distance: {
     fontSize: 12,
-    color: colors.muted,
+    color: 'rgba(255,255,255,0.55)',
     fontFamily: font ?? undefined,
     fontWeight: '500',
+    marginTop: -3,
+  },
+  bio: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.82)',
+    fontFamily: font ?? undefined,
+    lineHeight: 19,
+    fontStyle: 'italic',
   },
 
-  // Prompt
-  prompt: {
-    marginHorizontal: spacing.md,
-    marginTop: spacing.md,
-    backgroundColor: colors.cream,
+  // ── Compact card (Cupid) ──────────────────────────────
+  compactCard: {
+    flex: 1,
     borderRadius: radius.md,
-    padding: spacing.md,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+  compactGrad: {
+    justifyContent: 'flex-end',
+  },
+  compactInfo: {
+    padding: spacing.sm,
     gap: 5,
   },
-  promptCompact: {
-    padding: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  promptQ: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.plumMid,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+  compactName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
     fontFamily: font ?? undefined,
+    letterSpacing: -0.2,
   },
-  promptQCompact: {
-    fontSize: 9,
-  },
-  promptA: {
-    fontSize: 14,
-    color: colors.dark,
-    lineHeight: 21,
-    fontFamily: font ?? undefined,
+  compactAge: {
     fontWeight: '400',
-  },
-  promptACompact: {
-    fontSize: 11,
-    lineHeight: 16,
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 14,
   },
 
-  // Interests
-  interestsRow: {
+  // ── Shared ────────────────────────────────────────────
+  tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 5,
-    paddingHorizontal: spacing.md,
-    marginTop: spacing.md,
   },
   tag: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
     borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.14)',
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderColor: 'rgba(255,255,255,0.22)',
   },
-  tagHighlighted: {
-    borderColor: colors.coral,
-    backgroundColor: colors.coralSoft,
+  tagHi: {
+    backgroundColor: colors.roseSoft,
+    borderColor: colors.rose + '55',
   },
   tagText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.dark,
-    fontFamily: font ?? undefined,
-  },
-  tagTextHighlighted: {
-    color: colors.coral,
-  },
-  tagTextSmall: {
     fontSize: 10,
-  },
-
-  // Looking for
-  lookingForRow: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    marginTop: spacing.md,
-    alignItems: 'center',
-  },
-  lookingForLabel: {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: font ?? undefined,
-    fontWeight: '400',
-  },
-  lookingForValue: {
-    fontSize: 12,
-    color: colors.plumMid,
     fontWeight: '600',
+    color: 'rgba(255,255,255,0.90)',
     fontFamily: font ?? undefined,
+  },
+  tagTextHi: { color: colors.rose },
+
+  lf: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.50)',
+    fontFamily: font ?? undefined,
+  },
+  lfValue: {
+    color: colors.violetBright,
+    fontWeight: '700',
   },
 });

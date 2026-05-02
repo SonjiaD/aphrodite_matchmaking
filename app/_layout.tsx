@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import { OverlayProvider } from '../context/overlay';
 import { colors, font } from '../constants/theme';
 
 function injectInterFont() {
@@ -24,70 +25,72 @@ function TabIcon({
   return (
     <Ionicons
       name={name}
-      size={24}
-      color={focused ? colors.coral : colors.mutedLight}
+      size={23}
+      color={focused ? colors.rose : colors.mutedLight}
     />
   );
 }
 
 function AppTabs() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarShowLabel: true,
-        tabBarLabelStyle: styles.tabLabel,
-        tabBarActiveTintColor: colors.coral,
-        tabBarInactiveTintColor: colors.mutedLight,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Discover',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'compass' : 'compass-outline'} focused={focused} />
-          ),
+    <OverlayProvider>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: styles.tabBar,
+          tabBarShowLabel: true,
+          tabBarLabelStyle: styles.tabLabel,
+          tabBarActiveTintColor: colors.rose,
+          tabBarInactiveTintColor: colors.mutedLight,
         }}
-      />
-      <Tabs.Screen
-        name="cupid"
-        options={{
-          title: 'Cupid',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'heart-circle' : 'heart-circle-outline'} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="sparks"
-        options={{
-          title: 'Sparks',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'flash' : 'flash-outline'} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="leaderboard"
-        options={{
-          title: 'Ranks',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'person-circle' : 'person-circle-outline'} focused={focused} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Discover',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'compass' : 'compass-outline'} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="cupid"
+          options={{
+            title: 'Cupid',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'heart-circle' : 'heart-circle-outline'} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="sparks"
+          options={{
+            title: 'Sparks',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'flash' : 'flash-outline'} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="leaderboard"
+          options={{
+            title: 'Ranks',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'person-circle' : 'person-circle-outline'} focused={focused} />
+            ),
+          }}
+        />
+      </Tabs>
+    </OverlayProvider>
   );
 }
 
@@ -121,12 +124,12 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 10,
     fontFamily: font ?? undefined,
-    fontWeight: '500',
+    fontWeight: '600',
     marginTop: -2,
   },
   webWrapper: {
     flex: 1,
-    backgroundColor: '#080410',
+    backgroundColor: '#05050D',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '100vh' as any,
@@ -137,9 +140,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 48,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 32 },
-    shadowOpacity: 0.7,
-    shadowRadius: 60,
+    shadowOffset: { width: 0, height: 40 },
+    shadowOpacity: 0.8,
+    shadowRadius: 80,
     elevation: 30,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',

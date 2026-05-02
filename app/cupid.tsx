@@ -1,15 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRef, useState } from 'react';
-import { Animated, Dimensions, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Animated, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import CompatibilityScore from '../components/CompatibilityScore';
 import ProfileCard from '../components/ProfileCard';
 import SparkNoteModal from '../components/SparkNoteModal';
 import SparkSuccessOverlay from '../components/SparkSuccessOverlay';
+import { useOverlay } from '../context/overlay';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { getProfilePairs } from '../data/profiles';
 import { User } from '../types';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - spacing.md * 3 - 20) / 2;
 
 const pairs = getProfilePairs();
 
@@ -17,16 +16,22 @@ function getSharedInterests(a: User, b: User): string[] {
   return a.interests.filter((i) => b.interests.includes(i));
 }
 
+function computeAiScore(shared: string[], pairIndex: number): number {
+  const base = 50 + shared.length * 8;
+  const jitter = (pairIndex * 7 + shared.length * 3 + 11) % 15;
+  return Math.min(base + jitter, 98);
+}
+
 export default function CupidScreen() {
   const [pairIndex, setPairIndex] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [points, setPoints] = useState(120);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const overlay  = useOverlay();
 
   const currentPair = pairs[pairIndex % pairs.length];
   const [user1, user2] = currentPair;
-  const shared = getSharedInterests(user1, user2);
+  const shared  = useMemo(() => getSharedInterests(user1, user2), [user1, user2]);
+  const aiScore = useMemo(() => computeAiScore(shared, pairIndex), [shared, pairIndex]);
 
   function advancePair() {
     Animated.sequence([
@@ -36,15 +41,28 @@ export default function CupidScreen() {
     setTimeout(() => setPairIndex((i) => i + 1), 160);
   }
 
-  function handleSpark() {
-    setShowModal(false);
-    setShowSuccess(true);
-  }
-
-  function handleSuccessDone() {
-    setShowSuccess(false);
-    setPoints((p) => p + 5);
-    advancePair();
+  function handleSparkPress() {
+    overlay.present(
+      <SparkNoteModal
+        user1={user1}
+        user2={user2}
+        sharedInterests={shared}
+        onClose={overlay.dismiss}
+        onSubmit={(_note, _vibe) => {
+          overlay.present(
+            <SparkSuccessOverlay
+              user1={user1}
+              user2={user2}
+              onDone={() => {
+                overlay.dismiss();
+                setPoints((p) => p + 5);
+                advancePair();
+              }}
+            />
+          );
+        }}
+      />
+    );
   }
 
   return (
@@ -56,72 +74,62 @@ export default function CupidScreen() {
           <Text style={styles.headerSub}>Do they vibe?</Text>
         </View>
         <View style={styles.pointsBadge}>
-          <Ionicons name="flash" size={13} color={colors.dark} />
+          <Ionicons name="flash" size={13} color={colors.violet} />
           <Text style={styles.pointsText}>{points} pts</Text>
         </View>
       </View>
 
       {/* Profile pair */}
       <Animated.View style={[styles.pairRow, { opacity: fadeAnim }]}>
-        <View style={[styles.cardWrapper, { width: CARD_WIDTH }]}>
+        <View style={styles.cardWrapper}>
           <ProfileCard user={user1} compact sharedInterests={shared} />
         </View>
 
-        {/* Divider */}
         <View style={styles.divider}>
-          <View style={styles.dividerLineTop} />
-          <View style={styles.fireCircle}>
-            <Text style={styles.fireEmoji}>🔥</Text>
+          <View style={styles.dividerLine} />
+          <View style={styles.flashCircle}>
+            <Ionicons name="flash" size={11} color={colors.rose} />
           </View>
-          <View style={styles.dividerLineBottom} />
+          <View style={styles.dividerLine} />
         </View>
 
-        <View style={[styles.cardWrapper, { width: CARD_WIDTH }]}>
+        <View style={styles.cardWrapper}>
           <ProfileCard user={user2} compact sharedInterests={shared} />
         </View>
       </Animated.View>
 
-      {/* Shared interests */}
+      {/* AI Compatibility Score */}
+      <CompatibilityScore
+        score={aiScore}
+        reasons={shared.length > 0 ? ['shared interests', 'lifestyle'] : ['lifestyle', 'goals']}
+      />
+
+      {/* Shared interests strip */}
       {shared.length > 0 && (
         <View style={styles.sharedRow}>
-          <Ionicons name="link" size={12} color={colors.coral} />
+          <Ionicons name="link" size={12} color={colors.rose} />
           <Text style={styles.sharedLabel}>Both into: </Text>
-          <Text style={styles.sharedInterests}>{shared.map(s => s.split(' ')[1] ?? s).join(', ')}</Text>
+          <Text style={styles.sharedInterests}>{shared.join(', ')}</Text>
         </View>
       )}
 
       {/* Action buttons */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.passBtn} onPress={advancePair} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.passBtn} onPress={advancePair} activeOpacity={0.75}>
           <Ionicons name="close" size={18} color={colors.muted} />
           <Text style={styles.passBtnText}>Pass</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.skipBtn} onPress={advancePair} activeOpacity={0.8}>
-          <Ionicons name="arrow-forward" size={16} color={colors.plumMid} />
+        <TouchableOpacity style={styles.skipBtn} onPress={advancePair} activeOpacity={0.75}>
+          <Ionicons name="arrow-forward" size={16} color={colors.mutedLight} />
           <Text style={styles.skipBtnText}>Skip</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.sparkBtn} onPress={() => setShowModal(true)} activeOpacity={0.8}>
-          <Ionicons name="flash" size={18} color={colors.surface} />
+        <TouchableOpacity style={styles.sparkBtn} onPress={handleSparkPress} activeOpacity={0.85}>
+          <Ionicons name="flash" size={18} color="#fff" />
           <Text style={styles.sparkBtnText}>Spark</Text>
         </TouchableOpacity>
       </View>
-
-      <SparkNoteModal
-        visible={showModal}
-        user1={user1}
-        user2={user2}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleSpark}
-      />
-
-      <SparkSuccessOverlay
-        visible={showSuccess}
-        user1={user1}
-        user2={user2}
-        onDone={handleSuccessDone}
-      />
     </SafeAreaView>
   );
 }
@@ -129,43 +137,47 @@ export default function CupidScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.bg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: colors.plum,
+    backgroundColor: colors.surfaceEl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: colors.surface,
+    color: colors.dark,
     fontFamily: font ?? undefined,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   headerSub: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.muted,
     fontFamily: font ?? undefined,
-    fontWeight: '400',
+    fontWeight: '500',
     marginTop: 1,
   },
   pointsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.gold,
+    gap: 5,
+    backgroundColor: colors.violetSoft,
     borderRadius: radius.full,
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: colors.violet + '30',
   },
   pointsText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.dark,
+    color: colors.violetBright,
     fontFamily: font ?? undefined,
   },
   pairRow: {
@@ -177,47 +189,39 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     flex: 1,
-    ...shadow.card,
+    zIndex: 0,
   },
   divider: {
-    width: 20,
+    width: 24,
     alignItems: 'center',
     paddingVertical: spacing.sm,
+    zIndex: 2,
   },
-  dividerLineTop: {
+  dividerLine: {
     flex: 1,
     width: 1,
-    backgroundColor: colors.borderDark,
+    backgroundColor: colors.border,
   },
-  fireCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
+  flashCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.surfaceEl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.rose + '40',
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 6,
-    ...shadow.card,
-  },
-  fireEmoji: {
-    fontSize: 14,
-  },
-  dividerLineBottom: {
-    flex: 1,
-    width: 1,
-    backgroundColor: colors.borderDark,
   },
   sharedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 20,
     paddingVertical: 8,
-    gap: 4,
-    backgroundColor: colors.coralSoft,
+    gap: 5,
+    backgroundColor: colors.surfaceEl,
     borderTopWidth: 1,
-    borderColor: colors.coral + '30',
+    borderColor: colors.border,
   },
   sharedLabel: {
     fontSize: 12,
@@ -227,8 +231,8 @@ const styles = StyleSheet.create({
   },
   sharedInterests: {
     fontSize: 12,
-    color: colors.coral,
-    fontWeight: '600',
+    color: colors.rose,
+    fontWeight: '700',
     fontFamily: font ?? undefined,
   },
   actions: {
@@ -248,8 +252,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.full,
     paddingVertical: 13,
-    backgroundColor: colors.surface,
-    ...shadow.card,
+    backgroundColor: colors.glass,
   },
   passBtnText: {
     fontSize: 13,
@@ -267,13 +270,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.full,
     paddingVertical: 13,
-    backgroundColor: colors.surface,
-    ...shadow.card,
+    backgroundColor: colors.glass,
   },
   skipBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.plumMid,
+    color: colors.mutedLight,
     fontFamily: font ?? undefined,
   },
   sparkBtn: {
@@ -282,15 +284,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.coral,
+    backgroundColor: colors.rose,
     borderRadius: radius.full,
     paddingVertical: 13,
-    ...shadow.strong,
+    ...shadow.button,
   },
   sparkBtnText: {
     fontSize: 14,
     fontWeight: '800',
-    color: colors.surface,
+    color: '#fff',
     fontFamily: font ?? undefined,
   },
 });

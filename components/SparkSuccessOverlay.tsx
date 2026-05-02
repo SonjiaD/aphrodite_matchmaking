@@ -1,204 +1,238 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef } from 'react';
-import { Animated, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors, radius, spacing } from '../constants/theme';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { User } from '../types';
 
 interface Props {
-  visible: boolean;
   user1: User;
   user2: User;
   onDone: () => void;
 }
 
-const CONFETTI_COLORS = [colors.coral, colors.gold, '#C084FC', '#60D6A7', '#FFF6EE', '#FF8F82'];
-const NUM_PARTICLES = 16;
+const CONFETTI_COLORS = [colors.rose, colors.violet, colors.violetBright, colors.success, '#FF6B6B', '#A78BFA'];
+const NUM_PARTICLES = 18;
 
-export default function SparkSuccessOverlay({ visible, user1, user2, onDone }: Props) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const arrowScale = useRef(new Animated.Value(0)).current;
-  const arrowX = useRef(new Animated.Value(-60)).current;
-  const pointsBadge = useRef(new Animated.Value(0)).current;
+export default function SparkSuccessOverlay({ user1, user2, onDone }: Props) {
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.88)).current;
+  const arrowX    = useRef(new Animated.Value(-50)).current;
+  const arrowOp   = useRef(new Animated.Value(0)).current;
+  const badgeAnim = useRef(new Animated.Value(0)).current;
   const particles = useRef(
     Array.from({ length: NUM_PARTICLES }, () => ({
-      x: new Animated.Value(0),
-      y: new Animated.Value(0),
-      opacity: new Animated.Value(1),
-      scale: new Animated.Value(0),
+      x:  new Animated.Value(0),
+      y:  new Animated.Value(0),
+      op: new Animated.Value(1),
+      sc: new Animated.Value(0),
     }))
   ).current;
 
   useEffect(() => {
-    if (!visible) {
-      fadeAnim.setValue(0);
-      arrowScale.setValue(0);
-      arrowX.setValue(-60);
-      pointsBadge.setValue(0);
-      particles.forEach((p) => {
-        p.x.setValue(0);
-        p.y.setValue(0);
-        p.opacity.setValue(1);
-        p.scale.setValue(0);
-      });
-      return;
-    }
-
-    Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start(() => {
-      // Arrow shoots across
+    Animated.parallel([
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 280, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, bounciness: 6, speed: 12, useNativeDriver: true }),
+    ]).start(() => {
       Animated.parallel([
-        Animated.spring(arrowScale, { toValue: 1, useNativeDriver: true, bounciness: 10 }),
-        Animated.timing(arrowX, { toValue: 60, duration: 600, useNativeDriver: true }),
+        Animated.timing(arrowOp, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.timing(arrowX,  { toValue: 0, duration: 450, useNativeDriver: true }),
       ]).start(() => {
-        // Confetti burst
-        const confettiAnims = particles.map((p, i) => {
+        const burst = particles.map((p, i) => {
           const angle = (i / NUM_PARTICLES) * Math.PI * 2;
-          const dist = 80 + Math.random() * 60;
+          const dist  = 70 + Math.random() * 55;
           return Animated.parallel([
-            Animated.spring(p.scale, { toValue: 1, useNativeDriver: true }),
-            Animated.timing(p.x, { toValue: Math.cos(angle) * dist, duration: 700, useNativeDriver: true }),
-            Animated.timing(p.y, { toValue: Math.sin(angle) * dist, duration: 700, useNativeDriver: true }),
+            Animated.spring(p.sc, { toValue: 1, useNativeDriver: true }),
+            Animated.timing(p.x,  { toValue: Math.cos(angle) * dist, duration: 600, useNativeDriver: true }),
+            Animated.timing(p.y,  { toValue: Math.sin(angle) * dist, duration: 600, useNativeDriver: true }),
             Animated.sequence([
-              Animated.delay(400),
-              Animated.timing(p.opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+              Animated.delay(350),
+              Animated.timing(p.op, { toValue: 0, duration: 350, useNativeDriver: true }),
             ]),
           ]);
         });
-        Animated.parallel(confettiAnims).start();
-
-        // Points badge pops in
-        Animated.spring(pointsBadge, { toValue: 1, useNativeDriver: true, bounciness: 14 }).start();
+        Animated.parallel(burst).start();
+        Animated.spring(badgeAnim, { toValue: 1, bounciness: 14, useNativeDriver: true }).start();
       });
     });
-  }, [visible]);
+  }, []);
 
-  if (!visible) return null;
+  function close() {
+    Animated.parallel([
+      Animated.timing(fadeAnim,  { toValue: 0, duration: 200, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 0.92, duration: 180, useNativeDriver: true }),
+    ]).start(onDone);
+  }
 
   return (
-    <Modal visible={visible} transparent animationType="none">
-      <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-        {/* Confetti particles */}
-        <View style={styles.confettiCenter} pointerEvents="none">
+    <View style={styles.root}>
+      <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
+
+      <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
+        {/* Confetti */}
+        <View style={styles.confettiAnchor} pointerEvents="none">
           {particles.map((p, i) => (
             <Animated.View
               key={i}
               style={[
                 styles.particle,
                 { backgroundColor: CONFETTI_COLORS[i % CONFETTI_COLORS.length] },
-                {
-                  opacity: p.opacity,
-                  transform: [{ translateX: p.x }, { translateY: p.y }, { scale: p.scale }],
-                },
+                { opacity: p.op, transform: [{ translateX: p.x }, { translateY: p.y }, { scale: p.sc }] },
               ]}
             />
           ))}
         </View>
 
-        {/* Avatar + arrow */}
-        <View style={styles.avatarRow}>
-          <Image source={{ uri: user1.photos[0] }} style={styles.avatar} />
-          <Animated.Text
-            style={[
-              styles.arrow,
-              { transform: [{ translateX: arrowX }, { scale: arrowScale }] },
-            ]}
-          >
-            💘
-          </Animated.Text>
-          <Image source={{ uri: user2.photos[0] }} style={styles.avatar} />
+        {/* Flash icon header */}
+        <View style={styles.flashBadge}>
+          <Ionicons name="flash" size={20} color={colors.rose} />
         </View>
 
-        {/* Text */}
-        <Text style={styles.title}>Spark Sent! 🔥</Text>
+        <Text style={styles.title}>Spark Sent!</Text>
         <Text style={styles.subtitle}>
           {user1.name} & {user2.name} will each get a notification
         </Text>
 
+        {/* Avatars */}
+        <View style={styles.avatarRow}>
+          <Image source={{ uri: user1.photos[0] }} style={styles.avatar} />
+          <Animated.View style={[styles.arrowWrap, { opacity: arrowOp, transform: [{ translateX: arrowX }] }]}>
+            <Ionicons name="heart" size={26} color={colors.rose} />
+          </Animated.View>
+          <Image source={{ uri: user2.photos[0] }} style={styles.avatar} />
+        </View>
+
         {/* Points badge */}
-        <Animated.View
-          style={[styles.pointsBadge, { transform: [{ scale: pointsBadge }] }]}
-        >
-          <Text style={styles.pointsText}>+5 pts ⚡</Text>
+        <Animated.View style={[styles.pointsBadge, { transform: [{ scale: badgeAnim }] }]}>
+          <Ionicons name="flash" size={13} color={colors.violetBright} />
+          <Text style={styles.pointsText}>+5 pts earned</Text>
         </Animated.View>
 
-        <TouchableOpacity style={styles.btn} onPress={onDone} activeOpacity={0.8}>
-          <Text style={styles.btnLabel}>Keep sparking →</Text>
+        <TouchableOpacity style={styles.btn} onPress={close} activeOpacity={0.85}>
+          <Text style={styles.btnLabel}>Keep sparking</Text>
+          <Ionicons name="arrow-forward" size={16} color="#fff" />
         </TouchableOpacity>
       </Animated.View>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.plum,
+  root: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.xl,
+    zIndex: 200,
   },
-  confettiCenter: {
-    position: 'absolute',
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  card: {
+    backgroundColor: colors.surfaceEl,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    paddingTop: spacing.lg,
+    marginHorizontal: spacing.xl,
     alignItems: 'center',
-    justifyContent: 'center',
-    top: '45%',
+    gap: spacing.sm,
+    ...shadow.modal,
+    borderWidth: 1,
+    borderColor: colors.border,
+    width: '85%',
+  },
+  confettiAnchor: {
+    position: 'absolute',
+    top: '40%',
     left: '50%',
+    width: 0,
+    height: 0,
   },
   particle: {
     position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  flashBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.roseSoft,
+    borderWidth: 1,
+    borderColor: colors.rose + '35',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: colors.dark,
+    fontFamily: font ?? undefined,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontFamily: font ?? undefined,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
-    marginBottom: spacing.sm,
+    gap: spacing.md,
+    marginVertical: spacing.sm,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: colors.coral,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: colors.rose + '60',
   },
-  arrow: {
-    fontSize: 36,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.cardWhite,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.75)',
-    textAlign: 'center',
-    lineHeight: 24,
+  arrowWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.roseSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pointsBadge: {
-    backgroundColor: colors.gold,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.violetSoft,
     borderRadius: radius.full,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.violet + '30',
   },
   pointsText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.dark,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.violetBright,
+    fontFamily: font ?? undefined,
   },
   btn: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.coral,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    marginTop: spacing.xs,
+    backgroundColor: colors.rose,
     borderRadius: radius.full,
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
+    paddingVertical: 14,
+    alignSelf: 'stretch',
+    ...shadow.button,
   },
   btnLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.cardWhite,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#fff',
+    fontFamily: font ?? undefined,
   },
 });
