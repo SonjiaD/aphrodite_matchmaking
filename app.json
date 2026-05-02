@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Aphrodite",
+    "slug": "aphrodite-matchmaking",
+    "version": "1.0.0",
+    "scheme": "aphrodite",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#3D1A4B"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.aphrodite.matchmaking"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#3D1A4B"
+      },
+      "package": "com.aphrodite.matchmaking"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
