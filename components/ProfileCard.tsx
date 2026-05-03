@@ -128,7 +128,12 @@ const styles = StyleSheet.create({
     marginTop: -2,
   },
   promptBlock: {
-    gap: 2,
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
   promptQ: {
     fontSize: 10,
@@ -140,7 +145,7 @@ const styles = StyleSheet.create({
   },
   promptA: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.88)',
+    color: 'rgba(255,255,255,0.92)',
     fontFamily: font ?? undefined,
     lineHeight: 18,
     fontStyle: 'italic',
@@ -190,9 +195,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.20)',
+    borderColor: 'rgba(255,255,255,0.30)',
   },
   tagHi: {
     backgroundColor: colors.roseSoft,

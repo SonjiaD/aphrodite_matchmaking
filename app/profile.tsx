@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ScrollView, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import AmbientBackground from '../components/AmbientBackground';
 import InterestTag from '../components/InterestTag';
 import { useAuth } from '../context/auth';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
@@ -27,6 +28,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AmbientBackground />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     ...shadow.card,
   },
   avatarWrap: {
@@ -173,8 +175,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.violetSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.violet + '30',
+    borderWidth: 1.5,
+    borderColor: colors.violet + '55',
   },
   profileInfo: { flex: 1, gap: spacing.xs },
   name: {
@@ -208,7 +210,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     ...shadow.card,
   },
   sectionHeader: {

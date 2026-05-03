@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AmbientBackground from '../components/AmbientBackground';
 import ChatScreen from '../components/ChatScreen';
 import { useOverlay } from '../context/overlay';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
@@ -122,6 +123,7 @@ export default function SparksScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AmbientBackground />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Sparks</Text>
         <Text style={styles.headerSub}>People the community thinks you'd vibe with</Text>
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     overflow: 'hidden',
     ...shadow.card,
   },
@@ -304,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.rose,
     borderRadius: radius.full,
     paddingVertical: 11,
-    ...shadow.button,
+    ...shadow.glowRose,
   },
   acceptBtnText: {
     fontSize: 13,
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.violet,
     borderRadius: radius.full,
     paddingVertical: 12,
-    ...shadow.violet,
+    ...shadow.glow,
   },
   messageBtnText: {
     fontSize: 14,

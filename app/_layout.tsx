@@ -7,14 +7,33 @@ import { AuthProvider, Role, useAuth } from '../context/auth';
 import { OverlayProvider } from '../context/overlay';
 import { colors, font } from '../constants/theme';
 
-function injectInterFont() {
+function injectWebStyles() {
   if (Platform.OS !== 'web') return;
   if (document.getElementById('inter-font')) return;
+
   const link = document.createElement('link');
   link.id = 'inter-font';
   link.rel = 'stylesheet';
   link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap';
   document.head.appendChild(link);
+
+  const style = document.createElement('style');
+  style.id = 'aphrodite-glass';
+  style.textContent = `
+    #phone-shell {
+      background:
+        radial-gradient(ellipse 70% 45% at 18% 12%, rgba(109,40,217,0.28) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 40% at 82% 82%, rgba(255,45,85,0.20) 0%, transparent 60%),
+        #07051A !important;
+    }
+    #tab-bar-bg {
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+    /* Smooth scrollbar */
+    ::-webkit-scrollbar { width: 0; }
+  `;
+  document.head.appendChild(style);
 }
 
 function TabIcon({
@@ -52,13 +71,16 @@ function AppTabs({ role }: { role: Role }) {
           tabBarLabelStyle: styles.tabLabel,
           tabBarActiveTintColor: colors.rose,
           tabBarInactiveTintColor: colors.mutedLight,
+          tabBarBackground: () => (
+            <View nativeID="tab-bar-bg" style={styles.tabBarBg} />
+          ),
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
             title: 'Discover',
-            tabBarButton: hideDiscover ? () => null : undefined,
+            tabBarItemStyle: hideDiscover ? { display: 'none' } : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'compass' : 'compass-outline'} focused={focused} />
             ),
@@ -68,7 +90,7 @@ function AppTabs({ role }: { role: Role }) {
           name="cupid"
           options={{
             title: 'Cupid',
-            tabBarButton: hideCupid ? () => null : undefined,
+            tabBarItemStyle: hideCupid ? { display: 'none' } : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'heart-circle' : 'heart-circle-outline'} focused={focused} />
             ),
@@ -78,7 +100,7 @@ function AppTabs({ role }: { role: Role }) {
           name="sparks"
           options={{
             title: 'Sparks',
-            tabBarButton: hideSparks ? () => null : undefined,
+            tabBarItemStyle: hideSparks ? { display: 'none' } : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'flash' : 'flash-outline'} focused={focused} />
             ),
@@ -88,7 +110,7 @@ function AppTabs({ role }: { role: Role }) {
           name="chats"
           options={{
             title: 'Chats',
-            tabBarButton: hideChats ? () => null : undefined,
+            tabBarItemStyle: hideChats ? { display: 'none' } : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} focused={focused} />
             ),
@@ -98,7 +120,7 @@ function AppTabs({ role }: { role: Role }) {
           name="leaderboard"
           options={{
             title: 'Ranks',
-            tabBarButton: hideLeaderboard ? () => null : undefined,
+            tabBarItemStyle: hideLeaderboard ? { display: 'none' } : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} />
             ),
@@ -126,13 +148,13 @@ function RootContent() {
 
 export default function RootLayout() {
   useEffect(() => {
-    injectInterFont();
+    injectWebStyles();
   }, []);
 
   if (Platform.OS === 'web') {
     return (
       <View style={styles.webWrapper}>
-        <View style={styles.phoneShell}>
+        <View nativeID="phone-shell" style={styles.phoneShell}>
           <AuthProvider>
             <RootContent />
           </AuthProvider>
@@ -150,12 +172,16 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: colors.surface,
-    borderTopColor: colors.border,
+    backgroundColor: 'transparent',
+    borderTopColor: 'rgba(255,255,255,0.10)',
     borderTopWidth: 1,
     height: 84,
     paddingBottom: 16,
     paddingTop: 8,
+  },
+  tabBarBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(7,5,26,0.88)',
   },
   tabLabel: {
     fontSize: 10,

@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AmbientBackground from '../components/AmbientBackground';
 import ChatScreen from '../components/ChatScreen';
 import { useOverlay } from '../context/overlay';
 import { colors, font, radius, spacing } from '../constants/theme';
@@ -79,6 +80,7 @@ export default function ChatsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AmbientBackground />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
         <Text style={styles.headerSub}>{incomingSparks.length} conversations</Text>
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderMid,
     marginHorizontal: spacing.md,
   },
   photoWrap: { position: 'relative' },
@@ -134,8 +136,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.5,
+    borderColor: colors.borderMid,
   },
   onlineDot: {
     position: 'absolute',

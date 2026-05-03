@@ -10,8 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AmbientBackground from '../components/AmbientBackground';
 import ProfileCard from '../components/ProfileCard';
-import { colors, font, radius, shadow, spacing } from '../constants/theme';
+import { colors, font, radius, shadow, spacing, webStyle } from '../constants/theme';
 import { profiles } from '../data/profiles';
 
 const SWIPE_THRESHOLD = 100;
@@ -127,6 +128,7 @@ export default function DiscoverScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AmbientBackground />
       <View style={styles.header}>
         <Text style={styles.logo}>Aphrodite</Text>
         <TouchableOpacity style={styles.filterBtn}>
@@ -247,9 +249,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.glass,
+    backgroundColor: colors.glassMid,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -322,6 +324,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
+    backgroundColor: colors.glassMid,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderMid,
   },
   actionBtn: {
     alignItems: 'center',
@@ -329,9 +334,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.glassMid,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     gap: 2,
     ...shadow.card,
   },
@@ -340,12 +345,13 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     backgroundColor: colors.violetSoft,
-    borderColor: colors.violet + '30',
+    borderColor: colors.violet + '55',
+    ...shadow.glow,
   },
   likeBtn: {
     backgroundColor: colors.rose,
     borderColor: colors.rose,
-    ...shadow.button,
+    ...shadow.glowRose,
   },
   actionLabel: {
     fontSize: 9,

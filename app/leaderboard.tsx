@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AmbientBackground from '../components/AmbientBackground';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { leaderboardAllTime, leaderboardWeekly } from '../data/leaderboard';
 import { LeaderboardEntry } from '../types';
@@ -92,6 +93,7 @@ export default function LeaderboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AmbientBackground />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Leaderboard</Text>
         <View style={styles.tabRow}>
@@ -172,6 +174,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.sm,
     gap: 4,
+    ...shadow.card,
   },
   rankBadge: {
     paddingHorizontal: 8,
@@ -234,7 +237,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     ...shadow.card,
   },
   rowRank: {

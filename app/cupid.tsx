@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AmbientBackground from '../components/AmbientBackground';
 import CompatibilityScore from '../components/CompatibilityScore';
 import ProfileCard from '../components/ProfileCard';
 import SparkNoteModal from '../components/SparkNoteModal';
@@ -231,6 +232,7 @@ export default function CupidScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AmbientBackground />
       {/* Fixed header */}
       <View style={styles.header}>
         <View>
@@ -330,10 +332,10 @@ const celStyles = StyleSheet.create({
   },
   particle: { position: 'absolute' },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#12102E',
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     padding: spacing.xl,
     alignItems: 'center',
     gap: spacing.md,
@@ -524,7 +526,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     padding: spacing.sm,
     gap: 8,
   },
@@ -596,8 +598,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     gap: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.bg,
+    borderTopColor: colors.borderMid,
+    backgroundColor: colors.glassMid,
   },
   passBtn: {
     flex: 1,
@@ -644,7 +646,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.rose,
     borderRadius: radius.full,
     paddingVertical: 13,
-    ...shadow.button,
+    ...shadow.glowRose,
   },
   sparkBtnText: {
     fontSize: 14,

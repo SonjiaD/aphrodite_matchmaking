@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
   card: {
-    backgroundColor: colors.surfaceEl,
+    backgroundColor: '#12102E',
     borderRadius: radius.xl,
     padding: spacing.xl,
     paddingTop: spacing.lg,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     ...shadow.modal,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderMid,
     width: '85%',
   },
   confettiAnchor: {
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: 14,
     alignSelf: 'stretch',
-    ...shadow.button,
+    ...shadow.glowRose,
   },
   btnLabel: {
     fontSize: 15,

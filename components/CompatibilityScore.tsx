@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
-import { colors, font, radius, spacing } from '../constants/theme';
+import { colors, font, radius, shadow, spacing } from '../constants/theme';
 
 interface Props {
   score: number;
@@ -85,11 +85,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.violet + '25',
+    borderColor: colors.violet + '45',
     gap: spacing.xs,
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
+    ...shadow.glow,
   },
   header: {
     flexDirection: 'row',
