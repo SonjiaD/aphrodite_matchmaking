@@ -34,7 +34,7 @@ function buildSuggestions(u1: User, u2: User, shared: string[]): string[] {
     ? `They both love ${shared.slice(0, 2).join(' and ').toLowerCase()}`
     : `${u1.name} and ${u2.name} have the same laid-back energy`;
   return [
-    `${base} — feels like a natural fit.`,
+    `${base}, feels like a natural fit.`,
     `${u1.name}'s answer is exactly what ${u2.name} said they're looking for.`,
     `Same vibe, different energy. They'd balance each other really well.`,
   ];
@@ -112,7 +112,7 @@ export default function SparkNoteModal({ user1, user2, onClose, onSubmit, shared
           {/* AI Suggestions */}
           <View style={styles.suggestionsHeader}>
             <Text style={styles.aiStar}>✦</Text>
-            <Text style={styles.suggestionsLabel}>Suggested by Aphrodite AI — tap to use</Text>
+            <Text style={styles.suggestionsLabel}>Suggested by Aphrodite AI, tap to use</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsList}>
             {suggestions.map((s, i) => (

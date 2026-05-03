@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
-import { FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
-import { leaderboardData } from '../data/leaderboard';
+import { leaderboardAllTime, leaderboardWeekly } from '../data/leaderboard';
 import { LeaderboardEntry } from '../types';
 
 const RANK_COLORS = [
@@ -11,48 +11,84 @@ const RANK_COLORS = [
   { text: '#CD7F32', border: 'rgba(205,127,50,0.3)',  bg: 'rgba(205,127,50,0.08)'  },
 ];
 
-function TopCard({ entry }: { entry: LeaderboardEntry }) {
-  const rc = RANK_COLORS[entry.rank - 1];
+function FadeSlide({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 400,
+      delay,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, []);
   return (
-    <View style={[styles.topCard, { borderColor: rc.border, backgroundColor: rc.bg }]}>
-      <View style={[styles.rankBadge, { borderColor: rc.border }]}>
-        <Text style={[styles.rankNum, { color: rc.text }]}>#{entry.rank}</Text>
-      </View>
-      <Image source={{ uri: entry.user.photos[0] }} style={styles.topAvatar} />
-      <Text style={styles.topName}>{entry.user.name}</Text>
-      <Text style={styles.topSparks}>{entry.stats.totalSparks} sparks</Text>
-      <Text style={styles.topRate}>{entry.stats.successRate}%</Text>
-      {entry.stats.streak > 0 && (
-        <View style={styles.streakBadge}>
-          <Ionicons name="flame" size={10} color={colors.rose} />
-          <Text style={styles.streakText}>{entry.stats.streak}wk</Text>
-        </View>
-      )}
-    </View>
+    <Animated.View style={{
+      opacity: anim,
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+    }}>
+      {children}
+    </Animated.View>
   );
 }
 
-function LeaderRow({ entry, last }: { entry: LeaderboardEntry; last?: boolean }) {
+function TopCard({ entry, delay }: { entry: LeaderboardEntry; delay: number }) {
+  const rc = RANK_COLORS[entry.rank - 1];
+  const scaleAnim = useRef(new Animated.Value(0.88)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, bounciness: 5, speed: 10, delay }),
+      Animated.timing(opacityAnim, { toValue: 1, duration: 300, delay, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
   return (
-    <View style={[styles.row, last && { borderBottomWidth: 0 }]}>
-      <Text style={styles.rowRank}>#{entry.rank}</Text>
-      <Image source={{ uri: entry.user.photos[0] }} style={styles.rowAvatar} />
-      <View style={styles.rowInfo}>
-        <Text style={styles.rowName}>{entry.user.name}</Text>
-        <Text style={styles.rowBadge}>{entry.stats.badges[0]}</Text>
+    <Animated.View style={{ flex: 1, opacity: opacityAnim, transform: [{ scale: scaleAnim }] }}>
+      <View style={[styles.topCard, { borderColor: rc.border, backgroundColor: rc.bg }]}>
+        <View style={[styles.rankBadge, { borderColor: rc.border }]}>
+          <Text style={[styles.rankNum, { color: rc.text }]}>#{entry.rank}</Text>
+        </View>
+        <Image source={{ uri: entry.user.photos[0] }} style={styles.topAvatar} />
+        <Text style={styles.topName}>{entry.user.name}</Text>
+        <Text style={styles.topSparks}>{entry.stats.totalSparks} sparks</Text>
+        <Text style={styles.topRate}>{entry.stats.successRate}%</Text>
+        {entry.stats.streak > 0 && (
+          <View style={styles.streakBadge}>
+            <Ionicons name="flame" size={10} color={colors.rose} />
+            <Text style={styles.streakText}>{entry.stats.streak}wk</Text>
+          </View>
+        )}
       </View>
-      <View style={styles.rowStats}>
-        <Text style={styles.rowSparks}>{entry.stats.totalSparks} sparks</Text>
-        <Text style={styles.rowRate}>{entry.stats.successRate}% success</Text>
+    </Animated.View>
+  );
+}
+
+function LeaderRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
+  return (
+    <FadeSlide delay={index * 60 + 300}>
+      <View style={styles.row}>
+        <Text style={styles.rowRank}>#{entry.rank}</Text>
+        <Image source={{ uri: entry.user.photos[0] }} style={styles.rowAvatar} />
+        <View style={styles.rowInfo}>
+          <Text style={styles.rowName}>{entry.user.name}</Text>
+          <Text style={styles.rowBadge}>{entry.stats.badges[0]}</Text>
+        </View>
+        <View style={styles.rowStats}>
+          <Text style={styles.rowSparks}>{entry.stats.totalSparks} sparks</Text>
+          <Text style={styles.rowRate}>{entry.stats.successRate}% success</Text>
+        </View>
       </View>
-    </View>
+    </FadeSlide>
   );
 }
 
 export default function LeaderboardScreen() {
   const [tab, setTab] = useState<'weekly' | 'alltime'>('weekly');
-  const top3 = leaderboardData.slice(0, 3);
-  const rest = leaderboardData.slice(3);
+  const data = tab === 'weekly' ? leaderboardWeekly : leaderboardAllTime;
+  const top3 = data.slice(0, 3);
+  const rest = data.slice(3);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -74,15 +110,16 @@ export default function LeaderboardScreen() {
       </View>
 
       <FlatList
+        key={tab}
         data={rest}
         keyExtractor={(item) => item.user.id}
         ListHeaderComponent={() => (
           <View style={styles.topRow}>
-            {top3.map((e) => <TopCard key={e.user.id} entry={e} />)}
+            {top3.map((e, i) => <TopCard key={e.user.id} entry={e} delay={i * 80} />)}
           </View>
         )}
         renderItem={({ item, index }) => (
-          <LeaderRow entry={item} last={index === rest.length - 1} />
+          <LeaderRow entry={item} index={index} />
         )}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -123,14 +160,13 @@ const styles = StyleSheet.create({
     fontFamily: font ?? undefined,
   },
   tabLabelActive: { color: colors.dark },
-  list: { padding: spacing.md, gap: spacing.md },
+  list: { padding: spacing.md, gap: spacing.sm },
   topRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
   topCard: {
-    flex: 1,
     alignItems: 'center',
     borderRadius: radius.md,
     borderWidth: 1,

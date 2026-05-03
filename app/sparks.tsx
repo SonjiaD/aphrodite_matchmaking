@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
-import { FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { incomingSparks } from '../data/sparks';
 import { IncomingSpark } from '../types';
@@ -13,67 +13,90 @@ const VIBE_CONFIG: Record<string, { label: string; icon: VibeIconName }> = {
   soulmates: { label: 'Soulmates',         icon: 'flame-outline'  },
 };
 
+function FadeSlide({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 420,
+      delay,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, []);
+  return (
+    <Animated.View style={{
+      opacity: anim,
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+    }}>
+      {children}
+    </Animated.View>
+  );
+}
+
 export default function SparksScreen() {
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
 
-  function renderSpark({ item }: { item: IncomingSpark }) {
+  function renderSpark({ item, index }: { item: IncomingSpark; index: number }) {
     const isAccepted = accepted.has(item.id);
     const vibe = VIBE_CONFIG[item.vibe];
 
     return (
-      <View style={styles.card}>
-        {isAccepted && (
-          <View style={styles.matchedBanner}>
-            <Ionicons name="heart" size={14} color="#fff" />
-            <Text style={styles.matchedText}>It's a match — say hello</Text>
-          </View>
-        )}
+      <FadeSlide delay={index * 80}>
+        <View style={styles.card}>
+          {isAccepted && (
+            <View style={styles.matchedBanner}>
+              <Ionicons name="heart" size={14} color="#fff" />
+              <Text style={styles.matchedText}>It's a match, say hello</Text>
+            </View>
+          )}
 
-        <View style={styles.cardBody}>
-          <Image source={{ uri: item.suggestedUser.photos[0] }} style={styles.photo} />
-          <View style={styles.info}>
-            <View style={styles.nameRow}>
-              <Text style={styles.name}>
-                {item.suggestedUser.name}, {item.suggestedUser.age}
-              </Text>
-              {item.aiVerified && (
-                <View style={styles.aiBadge}>
-                  <Text style={styles.aiStar}>✦</Text>
-                  <Text style={styles.aiLabel}>AI</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.cupidLine}>
-              <Ionicons name="heart-circle" size={11} color={colors.muted} />
-              <Text style={styles.cupidText}>Sparked by {item.cupidName}</Text>
-            </View>
-            <View style={styles.vibePill}>
-              <Ionicons name={vibe.icon} size={11} color={colors.violetBright} />
-              <Text style={styles.vibeText}>{vibe.label}</Text>
+          <View style={styles.cardBody}>
+            <Image source={{ uri: item.suggestedUser.photos[0] }} style={styles.photo} />
+            <View style={styles.info}>
+              <View style={styles.nameRow}>
+                <Text style={styles.name}>
+                  {item.suggestedUser.name}, {item.suggestedUser.age}
+                </Text>
+                {item.aiVerified && (
+                  <View style={styles.aiBadge}>
+                    <Text style={styles.aiStar}>✦</Text>
+                    <Text style={styles.aiLabel}>AI</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.cupidLine}>
+                <Ionicons name="heart-circle" size={11} color={colors.muted} />
+                <Text style={styles.cupidText}>Sparked by {item.cupidName}</Text>
+              </View>
+              <View style={styles.vibePill}>
+                <Ionicons name={vibe.icon} size={11} color={colors.violetBright} />
+                <Text style={styles.vibeText}>{vibe.label}</Text>
+              </View>
             </View>
           </View>
+
+          <View style={styles.noteBox}>
+            <Text style={styles.noteText}>"{item.note}"</Text>
+          </View>
+
+          {!isAccepted && (
+            <View style={styles.btnRow}>
+              <TouchableOpacity style={styles.passBtn} activeOpacity={0.8}>
+                <Text style={styles.passBtnText}>Pass</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.acceptBtn}
+                activeOpacity={0.8}
+                onPress={() => setAccepted((s) => new Set([...s, item.id]))}
+              >
+                <Ionicons name="checkmark" size={16} color="#fff" />
+                <Text style={styles.acceptBtnText}>Accept</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
-
-        <View style={styles.noteBox}>
-          <Text style={styles.noteText}>"{item.note}"</Text>
-        </View>
-
-        {!isAccepted && (
-          <View style={styles.btnRow}>
-            <TouchableOpacity style={styles.passBtn} activeOpacity={0.8}>
-              <Text style={styles.passBtnText}>Pass</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.acceptBtn}
-              activeOpacity={0.8}
-              onPress={() => setAccepted((s) => new Set([...s, item.id]))}
-            >
-              <Ionicons name="checkmark" size={16} color="#fff" />
-              <Text style={styles.acceptBtnText}>Accept</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+      </FadeSlide>
     );
   }
 

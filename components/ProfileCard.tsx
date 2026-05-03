@@ -19,17 +19,21 @@ export default function ProfileCard({ user, compact = false, sharedInterests = [
           resizeMode="cover"
         />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.82)']}
-          locations={[0.42, 1]}
+          colors={['transparent', 'rgba(0,0,0,0.75)', 'rgba(0,0,0,0.95)']}
+          locations={[0.35, 0.72, 1]}
           style={[StyleSheet.absoluteFillObject, styles.compactGrad]}
         >
           <View style={styles.compactInfo}>
             <Text style={styles.compactName} numberOfLines={1}>
-              {user.name}{' '}
-              <Text style={styles.compactAge}>{user.age}</Text>
+              {user.name} <Text style={styles.compactAge}>{user.age}</Text>
             </Text>
+            {user.prompts[0]?.answer && (
+              <Text style={styles.compactBio} numberOfLines={2}>
+                {user.prompts[0].answer}
+              </Text>
+            )}
             <View style={styles.tagsRow}>
-              {user.interests.slice(0, 2).map((tag) => {
+              {user.interests.slice(0, 3).map((tag) => {
                 const hi = sharedInterests.includes(tag);
                 return (
                   <View key={tag} style={[styles.tag, hi && styles.tagHi]}>
@@ -52,8 +56,8 @@ export default function ProfileCard({ user, compact = false, sharedInterests = [
         resizeMode="cover"
       />
       <LinearGradient
-        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.95)']}
-        locations={[0, 0.3, 0.62, 1]}
+        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.96)']}
+        locations={[0, 0.28, 0.60, 1]}
         style={[StyleSheet.absoluteFillObject, styles.fullGrad]}
       >
         <View style={styles.fullInfo}>
@@ -63,10 +67,11 @@ export default function ProfileCard({ user, compact = false, sharedInterests = [
           </Text>
           <Text style={styles.distance}>{user.distance}</Text>
 
-          {user.prompts[0]?.answer && (
-            <Text style={styles.bio} numberOfLines={2}>
-              {user.prompts[0].answer}
-            </Text>
+          {user.prompts[0] && (
+            <View style={styles.promptBlock}>
+              <Text style={styles.promptQ}>{user.prompts[0].question}</Text>
+              <Text style={styles.promptA} numberOfLines={2}>{user.prompts[0].answer}</Text>
+            </View>
           )}
 
           <View style={styles.tagsRow}>
@@ -101,7 +106,7 @@ const styles = StyleSheet.create({
   fullInfo: {
     padding: spacing.md,
     paddingBottom: spacing.sm,
-    gap: 7,
+    gap: 6,
   },
   fullName: {
     fontSize: 28,
@@ -117,16 +122,27 @@ const styles = StyleSheet.create({
   },
   distance: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.55)',
+    color: 'rgba(255,255,255,0.50)',
     fontFamily: font ?? undefined,
     fontWeight: '500',
-    marginTop: -3,
+    marginTop: -2,
   },
-  bio: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.82)',
+  promptBlock: {
+    gap: 2,
+  },
+  promptQ: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.violetBright,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
     fontFamily: font ?? undefined,
-    lineHeight: 19,
+  },
+  promptA: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.88)',
+    fontFamily: font ?? undefined,
+    lineHeight: 18,
     fontStyle: 'italic',
   },
 
@@ -142,10 +158,10 @@ const styles = StyleSheet.create({
   },
   compactInfo: {
     padding: spacing.sm,
-    gap: 5,
+    gap: 4,
   },
   compactName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: '#FFFFFF',
     fontFamily: font ?? undefined,
@@ -153,30 +169,37 @@ const styles = StyleSheet.create({
   },
   compactAge: {
     fontWeight: '400',
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 14,
+    color: 'rgba(255,255,255,0.70)',
+    fontSize: 13,
+  },
+  compactBio: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.70)',
+    fontFamily: font ?? undefined,
+    lineHeight: 14,
+    fontStyle: 'italic',
   },
 
   // ── Shared ────────────────────────────────────────────
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 5,
+    gap: 4,
   },
   tag: {
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
+    borderColor: 'rgba(255,255,255,0.20)',
   },
   tagHi: {
     backgroundColor: colors.roseSoft,
     borderColor: colors.rose + '55',
   },
   tagText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.90)',
     fontFamily: font ?? undefined,
@@ -185,7 +208,7 @@ const styles = StyleSheet.create({
 
   lf: {
     fontSize: 11,
-    color: 'rgba(255,255,255,0.50)',
+    color: 'rgba(255,255,255,0.45)',
     fontFamily: font ?? undefined,
   },
   lfValue: {

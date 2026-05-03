@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { colors, font, radius, spacing } from '../constants/theme';
 
 interface Props {
@@ -8,24 +8,40 @@ interface Props {
 }
 
 export default function CompatibilityScore({ score, reasons }: Props) {
+  const [displayScore, setDisplayScore] = useState(0);
+  const barAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const countAnim = useRef(new Animated.Value(0)).current;
-  const barAnim   = useRef(new Animated.Value(0)).current;
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    countAnim.setValue(0);
+    barAnim.setValue(0);
+    setDisplayScore(0);
+
+    const listenerId = countAnim.addListener(({ value }) => {
+      setDisplayScore(Math.round(value));
+    });
+
     Animated.sequence([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
       Animated.parallel([
-        Animated.timing(countAnim, { toValue: score, duration: 900, useNativeDriver: false }),
-        Animated.timing(barAnim,   { toValue: score / 100, duration: 900, useNativeDriver: false }),
+        Animated.timing(countAnim, {
+          toValue: score,
+          duration: 1100,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+        Animated.timing(barAnim, {
+          toValue: score / 100,
+          duration: 1100,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
       ]),
     ]).start();
-  }, [score]);
 
-  const displayScore = countAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0', '100'],
-  });
+    return () => countAnim.removeListener(listenerId);
+  }, [score]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -35,7 +51,7 @@ export default function CompatibilityScore({ score, reasons }: Props) {
           <Text style={styles.aiLabel}>AI Match Score</Text>
         </View>
         <View style={styles.scoreRow}>
-          <Animated.Text style={styles.scoreNum}>{displayScore}</Animated.Text>
+          <Text style={styles.scoreNum}>{displayScore}</Text>
           <Text style={styles.scorePct}>% compatible</Text>
         </View>
       </View>
@@ -73,6 +89,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
+    marginBottom: spacing.sm,
   },
   header: {
     flexDirection: 'row',
@@ -99,13 +116,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   scoreNum: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '900',
     color: colors.violetBright,
     fontFamily: font ?? undefined,
+    letterSpacing: -0.5,
   },
   scorePct: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.muted,
     fontFamily: font ?? undefined,
     fontWeight: '500',
