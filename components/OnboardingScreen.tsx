@@ -183,7 +183,7 @@ export default function OnboardingScreen() {
 
   function canNext(): boolean {
     if (step === 0) return true;
-    if (step === 1) return name.trim().length > 1 && age.trim().length > 0 && Number(age) >= 18;
+    if (step === 1) return name.trim().length > 0 && age.trim().length > 0 && !isNaN(Number(age)) && Number(age) >= 18;
     if (step === 2) return role !== null;
     if (step === 3) return selectedInterests.length >= 3;
     if (step === 4) return selectedPromptIndices.length === 2 && selectedPromptIndices.every(i => (promptAnswers[i] ?? '').trim().length > 0);
@@ -216,16 +216,15 @@ export default function OnboardingScreen() {
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
-          autoFocus
         />
         <TextInput
           style={styles.textInput}
           placeholder="Age"
           placeholderTextColor={colors.mutedLight}
           value={age}
-          onChangeText={setAge}
+          onChangeText={text => setAge(text.replace(/[^0-9]/g, ''))}
           keyboardType="number-pad"
-          maxLength={2}
+          maxLength={3}
         />
         {age.length > 0 && Number(age) < 18 && (
           <Text style={styles.errorText}>You must be 18 or older.</Text>

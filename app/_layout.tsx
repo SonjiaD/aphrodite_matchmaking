@@ -37,6 +37,7 @@ function AppTabs({ role }: { role: Role }) {
   const hideCupid       = role === 'match';
   const hideDiscover    = role === 'cupid';
   const hideSparks      = role === 'cupid';
+  const hideChats       = role === 'cupid';
   const hideLeaderboard = role === 'match';
   const initialRoute    = role === 'cupid' ? 'cupid' : 'index';
 
@@ -80,6 +81,16 @@ function AppTabs({ role }: { role: Role }) {
             tabBarButton: hideSparks ? () => null : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'flash' : 'flash-outline'} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="chats"
+          options={{
+            title: 'Chats',
+            tabBarButton: hideChats ? () => null : undefined,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} focused={focused} />
             ),
           }}
         />

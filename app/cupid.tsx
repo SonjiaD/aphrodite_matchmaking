@@ -132,9 +132,11 @@ function AboutSection({ user }: { user: User }) {
 export default function CupidScreen() {
   const [pairIndex, setPairIndex] = useState(0);
   const [points, setPoints]       = useState(120);
+  const [ptsPopLabel, setPtsPopLabel] = useState('');
   const fadeAnim  = useRef(new Animated.Value(1)).current;
   const leftAnim  = useRef(new Animated.Value(0)).current;
   const rightAnim = useRef(new Animated.Value(0)).current;
+  const ptsPopAnim = useRef(new Animated.Value(0)).current;
   const overlay   = useOverlay();
 
   const { cupidCredits, clearCupidCredits } = useAuth();
@@ -162,6 +164,28 @@ export default function CupidScreen() {
     }
     prevCreditsLen.current = cupidCredits.length;
   }, [cupidCredits.length]);
+
+  function popPts(label: string) {
+    setPtsPopLabel(label);
+    ptsPopAnim.setValue(0);
+    Animated.sequence([
+      Animated.spring(ptsPopAnim, { toValue: 1, bounciness: 10, speed: 16, useNativeDriver: true }),
+      Animated.delay(700),
+      Animated.timing(ptsPopAnim, { toValue: 0, duration: 260, useNativeDriver: true }),
+    ]).start(() => setPtsPopLabel(''));
+  }
+
+  function handlePass() {
+    setPoints(p => p + 1);
+    popPts('+1');
+    advancePair();
+  }
+
+  function handleSkip() {
+    setPoints(p => p + 1);
+    popPts('+1');
+    advancePair();
+  }
 
   function advancePair() {
     Animated.parallel([
@@ -194,7 +218,8 @@ export default function CupidScreen() {
               user2={user2}
               onDone={() => {
                 overlay.dismiss();
-                setPoints((p) => p + 5);
+                setPoints((p) => p + 3);
+                popPts('+3');
                 advancePair();
               }}
             />
@@ -212,9 +237,19 @@ export default function CupidScreen() {
           <Text style={styles.headerTitle}>Cupid Mode</Text>
           <Text style={styles.headerSub}>Do they vibe?</Text>
         </View>
-        <View style={styles.pointsBadge}>
-          <Ionicons name="flash" size={13} color={colors.violet} />
-          <Text style={styles.pointsText}>{points} pts</Text>
+        <View style={styles.badgeWrap}>
+          {ptsPopLabel !== '' && (
+            <Animated.Text style={[styles.ptsPop, {
+              opacity: ptsPopAnim.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 1, 1, 0] }),
+              transform: [{ translateY: ptsPopAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -28] }) }],
+            }]}>
+              {ptsPopLabel} pts
+            </Animated.Text>
+          )}
+          <View style={styles.pointsBadge}>
+            <Ionicons name="flash" size={13} color={colors.violet} />
+            <Text style={styles.pointsText}>{points} pts</Text>
+          </View>
         </View>
       </View>
 
@@ -267,12 +302,12 @@ export default function CupidScreen() {
 
       {/* Fixed action bar */}
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.passBtn} onPress={advancePair} activeOpacity={0.75}>
+        <TouchableOpacity style={styles.passBtn} onPress={handlePass} activeOpacity={0.75}>
           <Ionicons name="close" size={18} color={colors.muted} />
           <Text style={styles.passBtnText}>Pass</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.skipBtn} onPress={advancePair} activeOpacity={0.75}>
+        <TouchableOpacity style={styles.skipBtn} onPress={handleSkip} activeOpacity={0.75}>
           <Ionicons name="arrow-forward" size={16} color={colors.mutedLight} />
           <Text style={styles.skipBtnText}>Skip</Text>
         </TouchableOpacity>
@@ -385,6 +420,19 @@ const styles = StyleSheet.create({
     fontFamily: font ?? undefined,
     fontWeight: '500',
     marginTop: 1,
+  },
+  badgeWrap: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  ptsPop: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.rose,
+    fontFamily: font ?? undefined,
+    position: 'absolute',
+    right: 8,
+    bottom: 28,
   },
   pointsBadge: {
     flexDirection: 'row',

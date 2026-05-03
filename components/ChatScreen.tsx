@@ -35,7 +35,7 @@ export default function ChatScreen({ spark, onClose }: Props) {
   const [toastText, setToastText]   = useState('');
 
   const slideAnim  = useRef(new Animated.Value(900)).current;
-  const toastAnim  = useRef(new Animated.Value(-80)).current;
+  const toastAnim  = useRef(new Animated.Value(80)).current;
   const meetAnim   = useRef(new Animated.Value(0)).current;
   const scrollRef  = useRef<ScrollView>(null);
 
@@ -75,16 +75,19 @@ export default function ChatScreen({ spark, onClose }: Props) {
     if (rating === 'great') {
       addCupidCredit(spark.cupidName, spark.suggestedUser.name, 15);
       showToast(`${spark.cupidName} earned +15 pts for this match`);
+    } else if (rating === 'okay') {
+      addCupidCredit(spark.cupidName, spark.suggestedUser.name, 5);
+      showToast(`${spark.cupidName} earned +5 pts for this spark`);
     }
   }
 
   function showToast(text: string) {
     setToastText(text);
-    toastAnim.setValue(-80);
+    toastAnim.setValue(80);
     Animated.sequence([
       Animated.spring(toastAnim, { toValue: 0, bounciness: 6, speed: 14, useNativeDriver: true }),
       Animated.delay(3000),
-      Animated.timing(toastAnim, { toValue: -80, duration: 280, useNativeDriver: true }),
+      Animated.timing(toastAnim, { toValue: 80, duration: 280, useNativeDriver: true }),
     ]).start(() => setToastText(''));
   }
 
@@ -244,20 +247,20 @@ const styles = StyleSheet.create({
   cupidText: { fontSize: 11, color: colors.muted, fontFamily: font ?? undefined },
   toast: {
     position: 'absolute',
-    top: 100,
+    bottom: 90,
     left: spacing.md,
     right: spacing.md,
-    backgroundColor: colors.violetSoft,
+    backgroundColor: colors.surfaceEl,
     borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: colors.violet + '30',
+    borderColor: colors.violet + '60',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     zIndex: 50,
-    ...shadow.card,
+    ...shadow.strong,
   },
   toastText: {
     fontSize: 13,
