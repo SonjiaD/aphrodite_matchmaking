@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useMemo, useRef, useState } from 'react';
-import { Animated, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import CompatibilityScore from '../components/CompatibilityScore';
 import ProfileCard from '../components/ProfileCard';
 import SparkNoteModal from '../components/SparkNoteModal';
 import SparkSuccessOverlay from '../components/SparkSuccessOverlay';
+import { CupidCredit, useAuth } from '../context/auth';
 import { useOverlay } from '../context/overlay';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { getProfilePairs } from '../data/profiles';
@@ -17,9 +18,87 @@ function getSharedInterests(a: User, b: User): string[] {
 }
 
 function computeAiScore(shared: string[], pairIndex: number): number {
-  const base = 50 + shared.length * 8;
+  const base   = 50 + shared.length * 8;
   const jitter = (pairIndex * 7 + shared.length * 3 + 11) % 15;
   return Math.min(base + jitter, 98);
+}
+
+// Full-screen celebration shown when a cupid earns a match credit
+function CelebrationOverlay({ credit, onDone }: { credit: CupidCredit; onDone: () => void }) {
+  const scaleAnim   = useRef(new Animated.Value(0)).current;
+  const fadeAnim    = useRef(new Animated.Value(0)).current;
+  const ptsAnim     = useRef(new Animated.Value(0)).current;
+  const ANGLES      = [0, 60, 120, 180, 240, 300];
+  const particles   = useRef(ANGLES.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 240, useNativeDriver: true }),
+      Animated.sequence([
+        Animated.delay(180),
+        Animated.spring(scaleAnim, { toValue: 1, bounciness: 14, speed: 9, useNativeDriver: true }),
+      ]),
+      Animated.sequence([
+        Animated.delay(400),
+        Animated.parallel(
+          particles.map((p, i) =>
+            Animated.sequence([
+              Animated.delay(i * 50),
+              Animated.timing(p, { toValue: 1, duration: 650, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+            ])
+          )
+        ),
+      ]),
+      Animated.sequence([
+        Animated.delay(500),
+        Animated.spring(ptsAnim, { toValue: 1, bounciness: 18, speed: 12, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View style={[celStyles.overlay, { opacity: fadeAnim }]}>
+      {/* Particles */}
+      {particles.map((p, i) => {
+        const angle = (ANGLES[i] * Math.PI) / 180;
+        const dist  = 110 + (i % 2) * 36;
+        return (
+          <Animated.View key={i} style={[celStyles.particle, {
+            transform: [
+              { translateX: p.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(angle) * dist] }) },
+              { translateY: p.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(angle) * dist] }) },
+              { scale: p.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1.5, 0.4] }) },
+            ],
+            opacity: p.interpolate({ inputRange: [0, 0.1, 0.6, 1], outputRange: [0, 1, 0.9, 0] }),
+          }]}>
+            <Ionicons
+              name={i % 2 === 0 ? 'heart' : 'star'}
+              size={i % 3 === 0 ? 20 : 13}
+              color={i % 2 === 0 ? colors.rose : '#F59E0B'}
+            />
+          </Animated.View>
+        );
+      })}
+
+      <Animated.View style={[celStyles.card, { transform: [{ scale: scaleAnim }] }]}>
+        <Ionicons name="heart-circle" size={64} color={colors.rose} />
+        <Text style={celStyles.title}>Match credit earned!</Text>
+        <Text style={celStyles.sub}>
+          {credit.matchName} said it was a great connection.
+        </Text>
+
+        <Animated.View style={[celStyles.ptsBadge, { transform: [{ scale: ptsAnim }] }]}>
+          <Ionicons name="flash" size={18} color={colors.violetBright} />
+          <Text style={celStyles.ptsText}>+{credit.pts} pts added to your balance</Text>
+        </Animated.View>
+
+        <TouchableOpacity style={celStyles.claimBtn} onPress={onDone} activeOpacity={0.85}>
+          <Ionicons name="checkmark-circle" size={18} color="#fff" />
+          <Text style={celStyles.claimBtnText}>Claim Reward</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </Animated.View>
+  );
 }
 
 function AboutSection({ user }: { user: User }) {
@@ -52,19 +131,39 @@ function AboutSection({ user }: { user: User }) {
 
 export default function CupidScreen() {
   const [pairIndex, setPairIndex] = useState(0);
-  const [points, setPoints] = useState(120);
-  const fadeAnim   = useRef(new Animated.Value(1)).current;
-  const leftAnim   = useRef(new Animated.Value(0)).current;
-  const rightAnim  = useRef(new Animated.Value(0)).current;
-  const overlay    = useOverlay();
+  const [points, setPoints]       = useState(120);
+  const fadeAnim  = useRef(new Animated.Value(1)).current;
+  const leftAnim  = useRef(new Animated.Value(0)).current;
+  const rightAnim = useRef(new Animated.Value(0)).current;
+  const overlay   = useOverlay();
+
+  const { cupidCredits, clearCupidCredits } = useAuth();
+  const prevCreditsLen = useRef(0);
 
   const currentPair = pairs[pairIndex % pairs.length];
   const [user1, user2] = currentPair;
   const shared  = useMemo(() => getSharedInterests(user1, user2), [user1, user2]);
   const aiScore = useMemo(() => computeAiScore(shared, pairIndex), [shared, pairIndex]);
 
+  // Show celebration when credits are earned
+  useEffect(() => {
+    if (cupidCredits.length > prevCreditsLen.current && cupidCredits.length > 0) {
+      prevCreditsLen.current = cupidCredits.length;
+      const credit = cupidCredits[0];
+      const t = setTimeout(() => {
+        overlay.present(
+          <CelebrationOverlay
+            credit={credit}
+            onDone={() => { overlay.dismiss(); clearCupidCredits(); }}
+          />
+        );
+      }, 700);
+      return () => clearTimeout(t);
+    }
+    prevCreditsLen.current = cupidCredits.length;
+  }, [cupidCredits.length]);
+
   function advancePair() {
-    // fade out + slide out
     Animated.parallel([
       Animated.timing(fadeAnim,  { toValue: 0, duration: 160, useNativeDriver: true }),
       Animated.timing(leftAnim,  { toValue: -30, duration: 160, useNativeDriver: true }),
@@ -187,6 +286,77 @@ export default function CupidScreen() {
   );
 }
 
+const celStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(5,5,18,0.88)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  particle: { position: 'absolute' },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.md,
+    width: 300,
+    ...shadow.strong,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.dark,
+    fontFamily: font ?? undefined,
+    letterSpacing: -0.4,
+    textAlign: 'center',
+  },
+  sub: {
+    fontSize: 14,
+    color: colors.muted,
+    fontFamily: font ?? undefined,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  ptsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: colors.violetSoft,
+    borderRadius: radius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: colors.violet + '30',
+  },
+  ptsText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.violetBright,
+    fontFamily: font ?? undefined,
+  },
+  claimBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: colors.rose,
+    borderRadius: radius.full,
+    paddingVertical: 13,
+    paddingHorizontal: 32,
+    marginTop: spacing.sm,
+    ...shadow.button,
+  },
+  claimBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+    fontFamily: font ?? undefined,
+  },
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -295,8 +465,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: font ?? undefined,
   },
-
-  // About section
   aboutRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,
@@ -373,8 +541,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: font ?? undefined,
   },
-
-  // Action bar
   actions: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,

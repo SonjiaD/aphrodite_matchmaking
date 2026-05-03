@@ -2,6 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import OnboardingScreen from '../components/OnboardingScreen';
+import { AuthProvider, Role, useAuth } from '../context/auth';
 import { OverlayProvider } from '../context/overlay';
 import { colors, font } from '../constants/theme';
 
@@ -31,10 +33,17 @@ function TabIcon({
   );
 }
 
-function AppTabs() {
+function AppTabs({ role }: { role: Role }) {
+  const hideCupid       = role === 'match';
+  const hideDiscover    = role === 'cupid';
+  const hideSparks      = role === 'cupid';
+  const hideLeaderboard = role === 'match';
+  const initialRoute    = role === 'cupid' ? 'cupid' : 'index';
+
   return (
     <OverlayProvider>
       <Tabs
+        initialRouteName={initialRoute}
         screenOptions={{
           headerShown: false,
           tabBarStyle: styles.tabBar,
@@ -48,6 +57,7 @@ function AppTabs() {
           name="index"
           options={{
             title: 'Discover',
+            tabBarButton: hideDiscover ? () => null : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'compass' : 'compass-outline'} focused={focused} />
             ),
@@ -57,6 +67,7 @@ function AppTabs() {
           name="cupid"
           options={{
             title: 'Cupid',
+            tabBarButton: hideCupid ? () => null : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'heart-circle' : 'heart-circle-outline'} focused={focused} />
             ),
@@ -66,6 +77,7 @@ function AppTabs() {
           name="sparks"
           options={{
             title: 'Sparks',
+            tabBarButton: hideSparks ? () => null : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'flash' : 'flash-outline'} focused={focused} />
             ),
@@ -75,6 +87,7 @@ function AppTabs() {
           name="leaderboard"
           options={{
             title: 'Ranks',
+            tabBarButton: hideLeaderboard ? () => null : undefined,
             tabBarIcon: ({ focused }) => (
               <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} />
             ),
@@ -94,6 +107,12 @@ function AppTabs() {
   );
 }
 
+function RootContent() {
+  const { onboarded, role } = useAuth();
+  if (!onboarded) return <OnboardingScreen />;
+  return <AppTabs role={role} />;
+}
+
 export default function RootLayout() {
   useEffect(() => {
     injectInterFont();
@@ -103,13 +122,19 @@ export default function RootLayout() {
     return (
       <View style={styles.webWrapper}>
         <View style={styles.phoneShell}>
-          <AppTabs />
+          <AuthProvider>
+            <RootContent />
+          </AuthProvider>
         </View>
       </View>
     );
   }
 
-  return <AppTabs />;
+  return (
+    <AuthProvider>
+      <RootContent />
+    </AuthProvider>
+  );
 }
 
 const styles = StyleSheet.create({

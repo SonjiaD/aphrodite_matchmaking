@@ -1,6 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ChatScreen from '../components/ChatScreen';
+import { useOverlay } from '../context/overlay';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
 import { incomingSparks } from '../data/sparks';
 import { IncomingSpark } from '../types';
@@ -35,7 +37,14 @@ function FadeSlide({ children, delay = 0 }: { children: React.ReactNode; delay?:
 }
 
 export default function SparksScreen() {
+  const overlay = useOverlay();
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
+
+  function openChat(item: IncomingSpark) {
+    overlay.present(
+      <ChatScreen spark={item} onClose={overlay.dismiss} />
+    );
+  }
 
   function renderSpark({ item, index }: { item: IncomingSpark; index: number }) {
     const isAccepted = accepted.has(item.id);
@@ -80,7 +89,7 @@ export default function SparksScreen() {
             <Text style={styles.noteText}>"{item.note}"</Text>
           </View>
 
-          {!isAccepted && (
+          {!isAccepted ? (
             <View style={styles.btnRow}>
               <TouchableOpacity style={styles.passBtn} activeOpacity={0.8}>
                 <Text style={styles.passBtnText}>Pass</Text>
@@ -92,6 +101,17 @@ export default function SparksScreen() {
               >
                 <Ionicons name="checkmark" size={16} color="#fff" />
                 <Text style={styles.acceptBtnText}>Accept</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.btnRow}>
+              <TouchableOpacity
+                style={styles.messageBtn}
+                activeOpacity={0.85}
+                onPress={() => openChat(item)}
+              >
+                <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
+                <Text style={styles.messageBtnText}>Message</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -288,6 +308,23 @@ const styles = StyleSheet.create({
   },
   acceptBtnText: {
     fontSize: 13,
+    fontWeight: '700',
+    color: '#fff',
+    fontFamily: font ?? undefined,
+  },
+  messageBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.violet,
+    borderRadius: radius.full,
+    paddingVertical: 12,
+    ...shadow.violet,
+  },
+  messageBtnText: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#fff',
     fontFamily: font ?? undefined,

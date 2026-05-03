@@ -1,20 +1,30 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import InterestTag from '../components/InterestTag';
+import { useAuth } from '../context/auth';
 import { colors, font, radius, shadow, spacing } from '../constants/theme';
-import { profiles } from '../data/profiles';
-
-const ME = profiles[4];
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const BADGES: { icon: IoniconName; label: string; desc: string }[] = [
-  { icon: 'flash',   label: 'First Spark', desc: 'Made your first match' },
-  { icon: 'flame',   label: 'Hot Streak',  desc: '3 weeks in a row' },
-  { icon: 'heart',   label: 'Soulmaker',   desc: '5 successful sparks' },
+  { icon: 'flash',  label: 'First Spark', desc: 'Made your first match' },
+  { icon: 'flame',  label: 'Hot Streak',  desc: '3 weeks in a row' },
+  { icon: 'heart',  label: 'Soulmaker',   desc: '5 successful sparks' },
 ];
 
+const ROLE_LABELS: Record<string, string> = {
+  cupid: 'Cupid',
+  match: 'Looking for a match',
+  both:  'Cupid + Match',
+};
+
 export default function ProfileScreen() {
+  const { name, age, role, interests, cupidCredits } = useAuth();
+
+  const displayName = name || 'You';
+  const displayAge  = age  || '';
+  const totalPts    = 480 + cupidCredits.reduce((s, c) => s + c.pts, 0);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -23,31 +33,46 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Profile card */}
         <View style={styles.profileCard}>
-          <Image source={{ uri: ME.photos[0] }} style={styles.photo} />
+          <View style={styles.avatarWrap}>
+            <Ionicons name="person-circle" size={72} color={colors.violetBright} />
+          </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.name}>{ME.name}, {ME.age}</Text>
-            <Text style={styles.distance}>{ME.distance}</Text>
-            <View style={styles.interestsRow}>
-              {ME.interests.slice(0, 4).map((i) => (
-                <InterestTag key={i} label={i} small />
-              ))}
+            <Text style={styles.name}>
+              {displayName}{displayAge ? `, ${displayAge}` : ''}
+            </Text>
+            <View style={styles.roleBadge}>
+              <Ionicons
+                name={role === 'cupid' ? 'heart-circle' : role === 'match' ? 'rose' : 'flash'}
+                size={12}
+                color={colors.violetBright}
+              />
+              <Text style={styles.roleText}>{ROLE_LABELS[role] ?? 'Member'}</Text>
             </View>
+            {interests.length > 0 && (
+              <View style={styles.interestsRow}>
+                {interests.slice(0, 4).map((i) => (
+                  <InterestTag key={i} label={i} small />
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
-        {/* Cupid Stats */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="flash" size={16} color={colors.violet} />
-            <Text style={styles.sectionTitle}>Cupid Stats</Text>
+        {/* Cupid Stats — shown for cupid and both roles */}
+        {role !== 'match' && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="flash" size={16} color={colors.violet} />
+              <Text style={styles.sectionTitle}>Cupid Stats</Text>
+            </View>
+            <View style={styles.statsGrid}>
+              <StatBox label="Total Sparks" value="12" />
+              <StatBox label="Success Rate" value="67%" accent />
+              <StatBox label="Current Rank" value="#4" />
+              <StatBox label="Week Streak" value="3 wks" />
+            </View>
           </View>
-          <View style={styles.statsGrid}>
-            <StatBox label="Total Sparks" value="12" />
-            <StatBox label="Success Rate" value="67%" accent />
-            <StatBox label="Current Rank" value="#4" />
-            <StatBox label="Week Streak" value="3 wks" />
-          </View>
-        </View>
+        )}
 
         {/* Points */}
         <View style={styles.pointsCard}>
@@ -55,11 +80,35 @@ export default function ProfileScreen() {
             <Text style={styles.pointsLabel}>Spark Points</Text>
             <View style={styles.pointsRow}>
               <Ionicons name="flash" size={16} color={colors.violet} />
-              <Text style={styles.pointsValue}>480 pts</Text>
+              <Text style={styles.pointsValue}>{totalPts} pts</Text>
             </View>
           </View>
           <Text style={styles.pointsHint}>20 pts until your next reward</Text>
         </View>
+
+        {/* Cupid credits history */}
+        {cupidCredits.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="heart" size={16} color={colors.rose} />
+              <Text style={styles.sectionTitle}>Match Credits</Text>
+            </View>
+            {cupidCredits.map(c => (
+              <View key={c.id} style={styles.creditRow}>
+                <View style={styles.creditIcon}>
+                  <Ionicons name="heart" size={16} color={colors.rose} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.creditText}>
+                    {c.matchName} said it was a great connection
+                  </Text>
+                  <Text style={styles.creditFrom}>via {c.from}</Text>
+                </View>
+                <Text style={styles.creditPts}>+{c.pts} pts</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Badges */}
         <View style={styles.section}>
@@ -117,10 +166,15 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...shadow.card,
   },
-  photo: {
+  avatarWrap: {
     width: 80,
-    height: 100,
-    borderRadius: radius.sm,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.violetSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.violet + '30',
   },
   profileInfo: { flex: 1, gap: spacing.xs },
   name: {
@@ -129,9 +183,22 @@ const styles = StyleSheet.create({
     color: colors.dark,
     fontFamily: font ?? undefined,
   },
-  distance: {
-    fontSize: 13,
-    color: colors.muted,
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.violetSoft,
+    borderRadius: radius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: colors.violet + '30',
+  },
+  roleText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.violetBright,
     fontFamily: font ?? undefined,
   },
   interestsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
@@ -216,6 +283,40 @@ const styles = StyleSheet.create({
     color: colors.muted,
     textAlign: 'right',
     maxWidth: 120,
+    fontFamily: font ?? undefined,
+  },
+  creditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  creditIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.roseSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.rose + '30',
+  },
+  creditText: {
+    fontSize: 13,
+    color: colors.text,
+    fontFamily: font ?? undefined,
+    fontWeight: '500',
+  },
+  creditFrom: {
+    fontSize: 11,
+    color: colors.muted,
+    fontFamily: font ?? undefined,
+    marginTop: 1,
+  },
+  creditPts: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.rose,
     fontFamily: font ?? undefined,
   },
   badgeRow: {
